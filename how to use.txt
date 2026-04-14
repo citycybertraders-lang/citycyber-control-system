@@ -1,0 +1,2 @@
+python app.py
+ to run in cmd using opening terminal in this folder then ctrl +link to open in browser

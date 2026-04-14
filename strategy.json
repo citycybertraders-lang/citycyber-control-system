@@ -1,0 +1,33 @@
+{
+  "mode": "balanced",
+  "weights": {
+    "profit": 0.40,
+    "revenue": 0.20,
+    "growth": 0.20,
+    "capture": 0.20
+  },
+  "constraints": {
+    "min_margin_pct": 10.0,
+    "max_change_pct": 10.0,
+    "confidence_gate": 0.55,
+    "cooldown_seconds": 300,
+    "max_daily_changes": 20
+  },
+  "policy_overrides": {
+    "traffic": {
+      "allow_low_margin": true,
+      "min_margin_pct": 5.0,
+      "bias": "volume"
+    },
+    "profit": {
+      "allow_low_margin": false,
+      "min_margin_pct": 20.0,
+      "bias": "margin"
+    },
+    "bundle": {
+      "allow_low_margin": true,
+      "min_margin_pct": 8.0,
+      "bias": "pair_optimise"
+    }
+  }
+}

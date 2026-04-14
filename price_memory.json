@@ -1,0 +1,79 @@
+{
+  "Century A4 Paper Rim": {
+    "last_price": 275.0,
+    "last_update": 1775583701.8003232,
+    "change_count": 1,
+    "cooldown_until": 1775584001.8003232,
+    "direction": "up",
+    "history": [
+      {
+        "from": 250.0,
+        "to": 275.0,
+        "ts": "2026-04-07T23:11:41.800337"
+      }
+    ],
+    "price_events": [
+      {
+        "ts": 1775583701.8003232,
+        "old": 250.0,
+        "new": 275.0,
+        "ratio": 1.1
+      }
+    ]
+  },
+  "a4 paper": {
+    "last_price": 275.0,
+    "last_update": 1775583704.0717096,
+    "change_count": 1,
+    "cooldown_until": 1775584004.0717096,
+    "direction": "up",
+    "history": [
+      {
+        "from": 250.0,
+        "to": 275.0,
+        "ts": "2026-04-07T23:11:44.071725"
+      }
+    ],
+    "price_events": [
+      {
+        "ts": 1775583704.0717096,
+        "old": 250.0,
+        "new": 275.0,
+        "ratio": 1.1
+      }
+    ]
+  },
+  "Print - A4 B&W": {
+    "last_price": 4.9,
+    "last_update": 1776152764.3897831,
+    "change_count": 2,
+    "cooldown_until": 1776153064.3897831,
+    "direction": "down",
+    "history": [
+      {
+        "from": 6.0,
+        "to": 5.4,
+        "ts": "2026-04-14T13:10:55.370731"
+      },
+      {
+        "from": 5.4,
+        "to": 4.9,
+        "ts": "2026-04-14T13:16:04.389793"
+      }
+    ],
+    "price_events": [
+      {
+        "ts": 1776152455.370721,
+        "old": 6.0,
+        "new": 5.4,
+        "ratio": 0.9
+      },
+      {
+        "ts": 1776152764.3897831,
+        "old": 5.4,
+        "new": 4.9,
+        "ratio": 0.9074
+      }
+    ]
+  }
+}
