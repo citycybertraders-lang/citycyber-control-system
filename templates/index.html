@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CityCyber POS</title>
+<style>
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #21262d;
+    --surface3:  #30363d;
+    --border:    #30363d;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --cyan:      #39c5cf;
+    --cyan-dim:  #1a4a4e;
+    --green:     #39d353;
+    --green-dim: #1a3a22;
+    --yellow:    #d29922;
+    --red:       #f85149;
+    --orange:    #db6d28;
+    --purple:    #a371f7;
+    --udhaar:    #e6a817;
+    --udhaar-bg: #2d2006;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* ── HEADER ── */
+  #header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+  }
+  #header .logo { font-size: 18px; font-weight: 700; color: var(--cyan); display: flex; align-items: center; gap: 6px; }
+  #header .logo span { font-size: 20px; }
+  #svc-count { color: var(--green); font-size: 12px; }
+  #header .spacer { flex: 1; }
+  #clock { color: var(--muted); font-size: 12px; }
+  .hbtn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 12px; border-radius: 6px;
+    cursor: pointer; font-size: 12px; transition: all .15s;
+  }
+  .hbtn:hover { background: var(--surface3); }
+  .hbtn.green { border-color: var(--green); color: var(--green); }
+  .hbtn.green:hover { background: var(--green-dim); }
+
+  /* ── LAYOUT ── */
+  #layout { display: grid; grid-template-columns: 1fr 340px 220px; gap: 0; flex: 1; overflow: hidden; }
+
+  /* ── SERVICES PANEL ── */
+  #services-panel { display: flex; flex-direction: column; overflow: hidden; padding: 12px; gap: 10px; }
+  #search-bar {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 14px;
+    color: var(--text); font-size: 13px; width: 100%;
+    outline: none;
+  }
+  #search-bar:focus { border-color: var(--cyan); }
+  #search-bar::placeholder { color: var(--muted); }
+
+  #filter-section { display: flex; flex-direction: column; gap: 6px; }
+  #filter-section label { color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  #cats { display: flex; flex-wrap: wrap; gap: 5px; }
+  .cat-pill {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 20px; cursor: pointer;
+    font-size: 11px; color: var(--muted); transition: all .15s;
+  }
+  .cat-pill:hover { border-color: var(--cyan); color: var(--text); }
+  .cat-pill.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+
+  #grid-header { display: flex; justify-content: space-between; align-items: center; }
+  #grid-header span { color: var(--muted); font-size: 11px; }
+  #services-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+    overflow-y: auto; padding-right: 2px;
+  }
+  #services-grid::-webkit-scrollbar { width: 4px; }
+  #services-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .svc-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px; cursor: pointer;
+    transition: all .15s; user-select: none;
+  }
+  .svc-card:hover { border-color: var(--cyan); transform: translateY(-1px); }
+  .svc-card:active { transform: translateY(0); }
+  .svc-card .svc-name { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 4px; }
+  .svc-card .svc-price { color: var(--cyan); font-weight: 700; font-size: 13px; }
+  .svc-card .svc-cat { color: var(--muted); font-size: 10px; margin-top: 2px; }
+
+  /* ── CART PANEL ── */
+  #cart-panel {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  #cart-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  #cart-header h3 { font-size: 13px; font-weight: 600; }
+  #cart-count {
+    background: var(--cyan); color: #000;
+    font-size: 10px; font-weight: 700;
+    padding: 1px 7px; border-radius: 10px;
+  }
+  #cart-header .spacer { flex: 1; }
+  #clear-cart { color: var(--muted); font-size: 11px; cursor: pointer; padding: 3px 8px; border-radius: 4px; border: none; background: none; }
+  #clear-cart:hover { color: var(--red); }
+
+  #cart-items { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  #cart-items::-webkit-scrollbar { width: 3px; }
+  #cart-items::-webkit-scrollbar-thumb { background: var(--border); }
+  #cart-empty { color: var(--muted); text-align: center; padding: 40px 0; font-size: 12px; }
+
+  .cart-item {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 7px; padding: 8px 10px;
+  }
+  .cart-item-top { display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px; }
+  .cart-item-name { font-size: 11px; font-weight: 600; flex: 1; padding-right: 6px; }
+  .cart-item-rev { color: var(--cyan); font-weight: 700; font-size: 12px; white-space: nowrap; }
+  .cart-item-sub { display: flex; align-items: center; gap: 6px; }
+  .cart-item-sub small { color: var(--muted); font-size: 10px; }
+  .qty-ctrl { display: flex; align-items: center; gap: 4px; }
+  .qty-btn { background: var(--surface3); border: none; color: var(--text); width: 20px; height: 20px; border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center; }
+  .qty-btn:hover { background: var(--border); }
+  .qty-val { min-width: 30px; text-align: center; font-size: 12px; font-weight: 600; }
+  .qty-input {
+    width: 44px; text-align: center; font-size: 12px; font-weight: 600;
+    background: var(--surface3); border: 1px solid var(--border); color: var(--text);
+    border-radius: 4px; padding: 2px 4px; -moz-appearance: textfield;
+  }
+  .qty-input::-webkit-outer-spin-button,
+  .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .qty-input:focus { border-color: var(--cyan); outline: none; }
+  .remove-btn { color: var(--muted); cursor: pointer; font-size: 14px; margin-left: auto; padding: 0 3px; }
+  .remove-btn:hover { color: var(--red); }
+  .override-row { margin-top: 5px; display: flex; align-items: center; gap: 6px; }
+  .override-row label { color: var(--muted); font-size: 10px; white-space: nowrap; }
+  .override-inp {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 4px; padding: 3px 7px; font-size: 11px; outline: none;
+  }
+  .override-inp:focus { border-color: var(--yellow); }
+
+  #cart-footer { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+  #cart-items-count { color: var(--muted); font-size: 11px; text-align: right; }
+  #cart-total-row { display: flex; justify-content: space-between; align-items: center; }
+  #cart-total-label { font-weight: 700; font-size: 14px; }
+  #cart-total-val { color: var(--cyan); font-size: 20px; font-weight: 700; }
+
+  #payment-modes { display: flex; gap: 6px; }
+  .pay-btn {
+    flex: 1; padding: 7px 4px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-size: 11px; font-weight: 600;
+    transition: all .15s; text-align: center;
+  }
+  .pay-btn:hover { border-color: var(--cyan); color: var(--text); }
+  .pay-btn.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+  .pay-btn.udhaar-btn.active { border-color: var(--udhaar); color: var(--udhaar); background: var(--udhaar-bg); }
+
+  #checkout-btn {
+    background: var(--cyan); color: #000; font-weight: 700; font-size: 15px;
+    border: none; border-radius: 10px; padding: 12px; cursor: pointer;
+    transition: all .15s; width: 100%;
+  }
+  #checkout-btn:hover { background: #4fd8e4; transform: translateY(-1px); }
+  #checkout-btn:active { transform: translateY(0); }
+  #checkout-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow-y: auto; gap: 0;
+  }
+  #sidebar::-webkit-scrollbar { width: 3px; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .sidebar-section { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .sidebar-section h4 { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+
+  #summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .summary-card { background: var(--surface2); border-radius: 8px; padding: 10px; }
+  .summary-card .label { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+  .summary-card .val { font-size: 20px; font-weight: 700; color: var(--green); }
+  .summary-card .val.cyan { color: var(--cyan); }
+  .summary-card .val.small { font-size: 16px; }
+
+  .cat-bar-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+  .cat-bar-name { color: var(--muted); font-size: 11px; width: 75px; flex-shrink: 0; }
+  .cat-bar-track { flex: 1; background: var(--surface2); border-radius: 3px; height: 4px; }
+  .cat-bar-fill { height: 100%; border-radius: 3px; background: var(--cyan); }
+  .cat-bar-val { color: var(--muted); font-size: 10px; width: 20px; text-align: right; }
+
+  .tx-item { display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; }
+  .tx-svc { font-size: 11px; font-weight: 600; }
+  .tx-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .tx-rev { color: var(--green); font-weight: 700; font-size: 12px; }
+  .pay-chip {
+    display: inline-block; font-size: 9px; padding: 1px 5px;
+    border-radius: 3px; background: var(--surface3); color: var(--muted);
+    margin-left: 4px;
+  }
+  .pay-chip.udhaar { background: var(--udhaar-bg); color: var(--udhaar); }
+
+  /* ── UDHAAR DIALOG ── */
+  #udhaar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
+    z-index: 1000; align-items: center; justify-content: center;
+  }
+  #udhaar-overlay.open { display: flex; align-items: flex-start; padding-top: 2vh; }
+
+  #udhaar-dialog {
+    background: var(--surface);
+    border: 1px solid var(--udhaar);
+    border-radius: 14px; padding: 0; width: 520px; max-width: 98vw;
+    max-height: 96vh; display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    animation: slideUp .2s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  #udhaar-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #udhaar-header .icon { font-size: 20px; }
+  #udhaar-header h2 { font-size: 14px; font-weight: 700; flex: 1; }
+  #udhaar-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
+  #udhaar-close:hover { color: var(--red); }
+
+  /* Mode tabs */
+  #udhaar-tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+  }
+  .utab {
+    flex: 1; padding: 10px; text-align: center;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    color: var(--muted); border: none; background: none;
+    border-bottom: 2px solid transparent; transition: all .15s;
+  }
+  .utab.active { color: var(--udhaar); border-bottom-color: var(--udhaar); }
+  .utab:hover:not(.active) { color: var(--text); }
+
+  #udhaar-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
+  #udhaar-body::-webkit-scrollbar { width: 3px; }
+  #udhaar-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Panels */
+  .udhaar-panel { display: none; flex-direction: column; gap: 12px; }
+  .udhaar-panel.active { display: flex; }
+
+  /* cart summary inside dialog */
+  #udhaar-cart-summary {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+  }
+  #udhaar-cart-summary .row { display: flex; justify-content: space-between; align-items: center; }
+  #udhaar-cart-summary .row + .row { margin-top: 4px; }
+  #udhaar-cart-summary .label { color: var(--muted); font-size: 12px; }
+  #udhaar-cart-summary .val { font-weight: 700; font-size: 13px; }
+  #udhaar-cart-summary .val.big { color: var(--udhaar); font-size: 17px; }
+
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-group label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .field-inp {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 7px; padding: 9px 12px; color: var(--text);
+    font-size: 13px; outline: none; width: 100%;
+  }
+  .field-inp:focus { border-color: var(--udhaar); }
+  .field-inp::placeholder { color: var(--muted); }
+
+  /* Money mode */
+  #money-display {
+    background: var(--udhaar-bg); border: 2px solid var(--udhaar);
+    border-radius: 10px; padding: 10px 14px; text-align: center;
+  }
+  #money-display .md-label { color: var(--udhaar); font-size: 9px; font-weight: 700; letter-spacing: .1em; margin-bottom: 3px; }
+  #money-display .md-amount { color: #fff; font-size: 26px; font-weight: 800; line-height: 1; }
+  #money-display .md-sub { color: var(--muted); font-size: 9px; margin-top: 3px; }
+
+  #money-type-toggle { display: flex; gap: 6px; }
+  .mtype-btn {
+    flex: 1; padding: 8px; border-radius: 7px; font-size: 12px; font-weight: 700;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface2);
+    color: var(--muted); transition: all .15s;
+  }
+  .mtype-btn.active-lend  { border-color: var(--red);    color: var(--red);    background: rgba(248,81,73,.1); }
+  .mtype-btn.active-udhaar{ border-color: var(--udhaar); color: var(--udhaar); background: var(--udhaar-bg); }
+
+  #money-presets { display: grid; grid-template-columns: repeat(6,1fr); gap: 5px; }
+  .mpreset {
+    padding: 7px 4px; border-radius: 6px; text-align: center;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); transition: all .12s;
+  }
+  .mpreset:hover { border-color: var(--udhaar); color: var(--udhaar); }
+  .mpreset.selected { border-color: var(--udhaar); color: #000; background: var(--udhaar); }
+
+
+
+  /* numpad removed — replaced with direct input */
+
+  /* balance strip */
+  #udhaar-balance-strip {
+    background: var(--udhaar-bg); border: 1px solid var(--udhaar);
+    border-radius: 7px; padding: 10px 12px;
+    display: none; flex-direction: column; gap: 4px;
+  }
+  #udhaar-balance-strip.show { display: flex; }
+  #udhaar-balance-strip .bal-row { display: flex; justify-content: space-between; font-size: 12px; }
+  #udhaar-balance-strip .bal-label { color: var(--udhaar); }
+  #ud-risk-display { font-size: 11px; padding-top: 4px; display: none; }
+  #ud-risk-warn { font-size: 10px; color: var(--red); font-weight: 700; padding-top: 3px; display: none; background: rgba(248,81,73,.08); padding: 4px 6px; border-radius: 3px; margin-top: 3px; }
+  #udhaar-balance-strip .bal-val { font-weight: 700; color: #fff; }
+
+  #udhaar-actions { display: flex; gap: 8px; margin-top: 2px; }
+  #udhaar-cancel {
+    flex: 1; padding: 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  #udhaar-cancel:hover { border-color: var(--red); color: var(--red); }
+  #udhaar-confirm {
+    flex: 2; padding: 10px; border-radius: 8px;
+    border: none; background: var(--udhaar); color: #000;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s;
+  }
+  #udhaar-confirm:hover { background: #f0b92a; }
+  #udhaar-confirm:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ── UDHAAR LEDGER PANEL (in sidebar) ── */
+  #udhaar-summary-card {
+    background: var(--udhaar-bg); border: 1px solid var(--udhaar);
+    border-radius: 8px; padding: 10px; cursor: pointer;
+    transition: all .15s;
+  }
+  #udhaar-summary-card:hover { border-color: #f0b92a; }
+  #udhaar-summary-card .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  #udhaar-summary-card .top span { color: var(--udhaar); font-size: 11px; font-weight: 600; }
+  #udhaar-summary-card .outstanding { color: var(--udhaar); font-size: 22px; font-weight: 700; }
+  #udhaar-summary-card .sub { color: var(--muted); font-size: 10px; }
+
+  /* ── UDHAAR LEDGER MODAL ── */
+  #ledger-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
+    z-index: 1000; align-items: start; justify-content: center;
+    padding-top: 40px;
+  }
+  #ledger-overlay.open { display: flex; }
+  #ledger-modal {
+    background: var(--surface); border: 1px solid var(--udhaar);
+    border-radius: 14px; width: 600px; max-width: 95vw; max-height: 80vh;
+    display: flex; flex-direction: column;
+    animation: slideUp .2s ease;
+  }
+  #ledger-modal-header {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #ledger-modal-header h2 { font-size: 14px; font-weight: 700; flex: 1; }
+  #ledger-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
+  #ledger-close:hover { color: var(--red); }
+
+  #ledger-toolbar {
+    padding: 10px 18px; border-bottom: 1px solid var(--border);
+    display: flex; gap: 8px; align-items: center;
+  }
+  #ledger-phone-inp {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 7px; padding: 7px 12px; color: var(--text); font-size: 13px; outline: none;
+  }
+  #ledger-phone-inp:focus { border-color: var(--udhaar); }
+  #ledger-phone-inp::placeholder { color: var(--muted); }
+  #ledger-lookup-btn {
+    background: var(--udhaar); color: #000; border: none;
+    padding: 7px 14px; border-radius: 7px; font-weight: 700; cursor: pointer; font-size: 12px;
+  }
+  #ledger-pay-btn {
+    background: var(--green-dim); border: 1px solid var(--green);
+    color: var(--green); padding: 7px 14px; border-radius: 7px;
+    font-weight: 700; cursor: pointer; font-size: 12px;
+  }
+  #ledger-pay-btn:hover { background: var(--green); color: #000; }
+  #ledger-all-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); padding: 7px 12px; border-radius: 7px;
+    cursor: pointer; font-size: 12px;
+  }
+  #ledger-all-btn:hover { border-color: var(--udhaar); color: var(--udhaar); }
+
+  #ledger-body { flex: 1; overflow-y: auto; padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+  #ledger-body::-webkit-scrollbar { width: 4px; }
+  #ledger-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+  #ledger-bal-strip {
+    background: var(--udhaar-bg); border: 1px solid var(--udhaar);
+    border-radius: 8px; padding: 12px;
+    display: none;
+  }
+  #ledger-bal-strip.show { display: block; }
+  #ledger-bal-strip .bal-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .bal-cell { text-align: center; }
+  .bal-cell .blabel { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+  .bal-cell .bval { font-weight: 700; font-size: 16px; }
+  .bal-cell .bval.out { color: var(--udhaar); }
+  .bal-cell .bval.green { color: var(--green); }
+  .bal-cell .bval.red { color: var(--red); }
+
+  #ledger-entries { display: flex; flex-direction: column; gap: 5px; }
+  .ledger-row {
+    background: var(--surface2); border-radius: 7px;
+    padding: 8px 12px; display: flex; align-items: center; gap: 10px;
+  }
+  .ledger-row .lr-type {
+    width: 52px; text-align: center; border-radius: 4px;
+    padding: 2px 6px; font-size: 10px; font-weight: 700; flex-shrink: 0;
+  }
+  .ledger-row .lr-type.debit { background: rgba(248,81,73,.15); color: var(--red); }
+  .ledger-row .lr-type.credit { background: rgba(57,211,83,.15); color: var(--green); }
+  .ledger-row .lr-note { flex: 1; font-size: 11px; color: var(--muted); }
+  .ledger-row .lr-amount { font-weight: 700; font-size: 13px; white-space: nowrap; }
+  .ledger-row .lr-amount.debit { color: var(--red); }
+  .ledger-row .lr-amount.credit { color: var(--green); }
+  .ledger-row .lr-ts { font-size: 10px; color: var(--muted); white-space: nowrap; }
+
+  #ledger-debtors { display: flex; flex-direction: column; gap: 6px; }
+  .debtor-row {
+    background: var(--surface2); border-radius: 7px;
+    padding: 8px 12px; display: flex; align-items: center; gap: 10px;
+    cursor: pointer; transition: border .15s;
+    border: 1px solid transparent;
+  }
+  .debtor-row:hover { border-color: var(--udhaar); }
+  .debtor-phone { flex: 1; font-size: 12px; font-weight: 600; }
+  .debtor-balance { color: var(--udhaar); font-weight: 700; font-size: 14px; }
+  .debtor-risk { font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+  .debtor-risk.low { background: rgba(57,211,83,.15); color: var(--green); }
+  .debtor-risk.medium { background: rgba(210,153,34,.15); color: var(--yellow); }
+  .debtor-risk.high { background: rgba(248,81,73,.15); color: var(--red); }
+
+  /* ── PAY COLLECTION DIALOG ── */
+  #pay-collect-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 1100;
+    align-items: center; justify-content: center;
+  }
+  #pay-collect-overlay.open { display: flex; }
+  #pay-collect-modal {
+    background: var(--surface); border: 1px solid var(--green);
+    border-radius: 12px; padding: 20px; width: 360px;
+    animation: slideUp .15s ease;
+  }
+  #pay-collect-modal h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+  #pay-collect-modal .field-group { margin-bottom: 10px; }
+  #pay-collect-actions { display: flex; gap: 8px; margin-top: 14px; }
+  #pay-collect-cancel { flex:1; padding:9px; border-radius:7px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; font-size:13px; }
+  #pay-collect-submit { flex:2; padding:9px; border-radius:7px; border:none; background:var(--green); color:#000; font-weight:700; cursor:pointer; font-size:13px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 20px; border-radius: 8px;
+    font-size: 13px; pointer-events: none; opacity: 0;
+    transition: opacity .2s; z-index: 2000; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+  #toast.ok { border-color: var(--green); color: var(--green); }
+  #toast.err { border-color: var(--red); color: var(--red); }
+  #toast.info { border-color: var(--udhaar); color: var(--udhaar); }
+
+  /* ── Agent Console ─────────────────────────────────── */
+  #agent-overlay {
+    display:none; position:fixed; inset:0; z-index:12000;
+    background:rgba(0,0,0,.72); backdrop-filter:blur(6px);
+    align-items:center; justify-content:center;
+  }
+  #agent-overlay.open { display:flex; }
+  #agent-modal {
+    width:min(96vw,1100px); height:min(92vh,760px);
+    background:#0d1117; border:1px solid #30363d;
+    border-radius:14px; display:flex; flex-direction:column; overflow:hidden;
+    box-shadow:0 24px 80px rgba(0,0,0,.7);
+  }
+  #agent-header {
+    display:flex; align-items:center; gap:12px;
+    padding:14px 18px; border-bottom:1px solid #21262d;
+    background:#161b22;
+  }
+  #agent-header h2 { margin:0; font-size:15px; color:#e6edf3; flex:1; }
+  #agent-header .badge {
+    font-size:10px; padding:2px 8px; border-radius:20px;
+    background:#21262d; color:#58a6ff; font-weight:700; letter-spacing:.5px;
+  }
+  #agent-close {
+    background:none; border:none; color:#8b949e; font-size:18px;
+    cursor:pointer; padding:2px 6px; border-radius:4px;
+  }
+  #agent-close:hover { color:#e6edf3; background:#21262d; }
+  #agent-body { display:flex; flex:1; overflow:hidden; }
+  /* left — network panel */
+  #agent-network {
+    width:220px; border-right:1px solid #21262d;
+    background:#0d1117; padding:14px 12px; overflow-y:auto;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  #agent-network h4 {
+    margin:0 0 6px; font-size:10px; letter-spacing:1px;
+    color:#8b949e; text-transform:uppercase;
+  }
+  .an-node {
+    display:flex; align-items:center; gap:9px; padding:8px 10px;
+    border-radius:8px; background:#161b22; border:1px solid #21262d;
+    cursor:default; transition:border-color .15s;
+  }
+  .an-node.active { border-color: var(--node-color, #58a6ff); }
+  .an-node .emoji { font-size:18px; line-height:1; }
+  .an-node .info { flex:1; min-width:0; }
+  .an-node .info .nname {
+    font-size:11px; font-weight:700; color:#e6edf3; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis;
+  }
+  .an-node .info .ndesc { font-size:9px; color:#8b949e; margin-top:1px; }
+  .an-node .dot {
+    width:7px; height:7px; border-radius:50%;
+    background:#30363d; transition:background .3s;
+  }
+  .an-node.pulsing .dot { background: var(--node-color, #58a6ff); animation: dotpulse .8s infinite; }
+  @keyframes dotpulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+  /* right — chat */
+  #agent-chat { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  #agent-feed {
+    flex:1; overflow-y:auto; padding:16px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  #agent-feed::-webkit-scrollbar { width:4px; }
+  #agent-feed::-webkit-scrollbar-track { background:#0d1117; }
+  #agent-feed::-webkit-scrollbar-thumb { background:#30363d; border-radius:2px; }
+  .af-msg {
+    max-width:82%; padding:9px 13px; border-radius:10px;
+    font-size:12px; line-height:1.55; word-break:break-word;
+    animation: msgIn .2s ease;
+  }
+  @keyframes msgIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+  .af-msg.user-msg {
+    align-self:flex-end; background:#1f6feb22;
+    border:1px solid #1f6feb55; color:#79c0ff;
+  }
+  .af-msg.thinking { color:#8b949e; font-style:italic; background:#161b22; border:1px solid #21262d; }
+  .af-msg.working  { color:#d2a8ff; background:#161b22; border:1px solid #30363d; }
+  .af-msg.inter_agent { color:#ffa657; background:#161b22; border:1px solid #30363d; font-size:11px; }
+  .af-msg.response  { color:#e6edf3; background:#161b22; border:1px solid #21262d; }
+  .af-msg.complete  { color:#3fb950; background:#1a2f1c; border:1px solid #3fb95055; }
+  .af-msg.error     { color:#f85149; background:#2a1515; border:1px solid #f8514955; }
+  .af-msg.info      { color:#58a6ff; background:#161b22; border:1px solid #21262d; }
+  .af-msg .af-meta  { font-size:9px; color:#8b949e; margin-bottom:3px; font-weight:600; }
+  #agent-input-row {
+    padding:12px 16px; border-top:1px solid #21262d;
+    background:#161b22; display:flex; gap:8px; align-items:flex-end;
+  }
+  #agent-input {
+    flex:1; background:#0d1117; border:1px solid #30363d; border-radius:8px;
+    color:#e6edf3; font-size:13px; padding:9px 12px; resize:none; outline:none;
+    font-family:inherit; min-height:38px; max-height:120px;
+  }
+  #agent-input:focus { border-color:#58a6ff; }
+  #agent-send {
+    padding:9px 18px; background:#1f6feb; border:none; border-radius:8px;
+    color:#fff; font-size:13px; font-weight:700; cursor:pointer;
+    transition:background .15s; white-space:nowrap;
+  }
+  #agent-send:hover { background:#388bfd; }
+  #agent-send:disabled { background:#21262d; color:#8b949e; cursor:not-allowed; }
+  .hbtn.agent-btn { border-color:#1f6feb; color:#58a6ff; }
+  .hbtn.agent-btn:hover { background:#1f6feb22; }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div id="header">
+  <div class="logo"><span>⚡</span> CityCyber</div>
+  <div id="svc-count">● 0 services loaded</div>
+  <div class="spacer"></div>
+  <div id="clock"></div>
+  <button class="hbtn" onclick="reloadServices()">↺ Refresh</button>
+  <button class="hbtn green" onclick="exportExcel()">↑ Export Excel</button>
+  <button class="hbtn" style="border-color:var(--udhaar);color:var(--udhaar)" onclick="openLedger()">💳 Udhaar Ledger</button>
+  <button class="hbtn agent-btn" onclick="openAgentConsole()">🤖 Agent Console</button>
+</div>
+
+<!-- ── LAYOUT ── -->
+<div id="layout">
+
+  <!-- ── SERVICES PANEL ── -->
+  <div id="services-panel">
+    <input id="search-bar" type="text" placeholder="🔍  Search services... (name or category)" oninput="onSearch(this.value)" onkeydown="onSearchKey(event)">
+    <div id="filter-section">
+      <label>FILTER BY CATEGORY</label>
+      <div id="cats"></div>
+    </div>
+    <div id="grid-header">
+      <span>SERVICES — <b id="shown-count">0</b> SHOWN</span>
+    </div>
+    <div id="services-grid"></div>
+  </div>
+
+  <!-- ── CART PANEL ── -->
+  <div id="cart-panel">
+    <div id="cart-header">
+      <span>🛒</span>
+      <h3>CART</h3>
+      <div id="cart-count">0</div>
+      <div class="spacer"></div>
+      <button id="clear-cart" onclick="clearCart()">Clear</button>
+    </div>
+    <div id="cart-items"><div id="cart-empty">Cart is empty</div></div>
+    <div id="cart-footer">
+      <div id="cart-items-count">0 line(s), 0 unit(s)</div>
+      <div id="cart-total-row">
+        <span id="cart-total-label">TOTAL</span>
+        <span id="cart-total-val">₹ 0</span>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px">Payment Mode</div>
+        <div id="payment-modes">
+          <button class="pay-btn active" data-pay="Cash" onclick="setPayment('Cash')">💵 Cash</button>
+          <button class="pay-btn" data-pay="UPI"  onclick="setPayment('UPI')">📱 UPI</button>
+          <button class="pay-btn" data-pay="Card" onclick="setPayment('Card')">💳 Card</button>
+          <button class="pay-btn udhaar-btn" data-pay="Udhaar" onclick="setPayment('Udhaar')">🤝 Udhaar</button>
+        </div>
+      </div>
+      <button id="checkout-btn" onclick="checkout()">⚡ Checkout</button>
+    </div>
+  </div>
+
+  <!-- ── SIDEBAR ── -->
+  <div id="sidebar">
+    <div class="sidebar-section">
+      <h4>TODAY'S SUMMARY</h4>
+      <div id="summary-grid">
+        <div class="summary-card"><div class="label">Revenue</div><div class="val cyan" id="s-rev">₹ 0</div></div>
+        <div class="summary-card"><div class="label">Profit</div><div class="val" id="s-profit">₹ 0</div></div>
+        <div class="summary-card"><div class="label">Transactions</div><div class="val small cyan" id="s-count">0</div></div>
+        <div class="summary-card"><div class="label">Avg Ticket</div><div class="val small" id="s-avg">₹ 0</div></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <h4>SERVICES BY CATEGORY</h4>
+      <div id="cat-bars"></div>
+    </div>
+    <div class="sidebar-section">
+      <h4>UDHAAR OUTSTANDING</h4>
+      <div id="udhaar-summary-card" onclick="openLedger()">
+        <div class="top"><span>💳 Credit Ledger</span><span style="color:var(--muted);font-size:10px">View All →</span></div>
+        <div class="outstanding" id="u-outstanding">₹ 0</div>
+        <div class="sub" id="u-sub">0 customers · ₹0 today</div>
+      </div>
+      <button onclick="openMoneyUdhaar()" style="margin-top:8px;width:100%;padding:8px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--udhaar);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--udhaar)'" onmouseout="this.style.borderColor='var(--border)'">💸 Lend / Add Money Udhaar</button>
+    </div>
+    <div class="sidebar-section" style="flex:1">
+      <h4>RECENT TRANSACTIONS</h4>
+      <div id="recent-txs"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     UDHAAR DIALOG  (two modes: Item / Money)
+═══════════════════════════════════════════ -->
+<div id="udhaar-overlay" onclick="closeUdhaarDialog(event)">
+  <div id="udhaar-dialog">
+
+    <div id="udhaar-header">
+      <span class="icon">🤝</span>
+      <h2 id="udhaar-title">Udhaar</h2>
+      <button id="udhaar-close" onclick="closeUdhaarDialog()">✕</button>
+    </div>
+
+    <!-- Mode tabs -->
+    <div id="udhaar-tabs">
+      <button class="utab active" id="tab-item"  onclick="switchUdhaarTab('item')">🛒 Item Udhaar</button>
+      <button class="utab"        id="tab-money" onclick="switchUdhaarTab('money')">💵 Money Lend / Udhaar</button>
+    </div>
+
+    <div id="udhaar-body">
+
+      <!-- ── ITEM MODE ── -->
+      <div class="udhaar-panel active" id="panel-item">
+        <div id="udhaar-cart-summary">
+          <div class="row">
+            <span class="label">Items in cart</span>
+            <span class="val" id="ud-items">—</span>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <span class="label">Amount to be credited (udhaar)</span>
+            <span class="val big" id="ud-amount">₹ 0</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Customer Phone *</label>
+          <input id="ud-phone" class="field-inp" type="tel" placeholder="10-digit mobile number"
+                 oninput="onUdhaarPhoneInput(this.value)" maxlength="15">
+        </div>
+        <div class="field-group">
+          <label>Customer Name (optional)</label>
+          <input id="ud-name" class="field-inp" type="text" placeholder="Name for reference">
+        </div>
+        <div id="udhaar-balance-strip">
+          <div class="bal-row"><span class="bal-label">Current balance:</span><span class="bal-val" id="ud-existing-bal">₹ 0</span></div>
+          <div class="bal-row"><span class="bal-label">After this sale:</span><span class="bal-val" id="ud-new-bal">₹ 0</span></div>
+          <div id="ud-risk-display"></div>
+          <div id="ud-risk-warn"></div>
+        </div>
+        <div class="field-group">
+          <label>Note (optional)</label>
+          <input id="ud-note" class="field-inp" type="text" placeholder="e.g. Pay by Friday">
+        </div>
+        <div id="udhaar-actions">
+          <button id="udhaar-cancel" onclick="closeUdhaarDialog()">Cancel</button>
+          <button id="udhaar-confirm" onclick="confirmUdhaarCheckout()">🤝 Confirm Udhaar</button>
+        </div>
+      </div>
+
+      <!-- ── MONEY MODE ── -->
+      <div class="udhaar-panel" id="panel-money">
+
+        <!-- Lend vs Udhaar toggle -->
+        <div id="money-type-toggle">
+          <button class="mtype-btn active-lend" id="mtype-lend"   onclick="setMoneyType('lend')">💸 I'm Lending Money</button>
+          <button class="mtype-btn"             id="mtype-udhaar" onclick="setMoneyType('udhaar')">🤝 Customer Owes Me</button>
+        </div>
+
+        <!-- Amount display -->
+        <div id="money-display">
+          <div class="md-label" id="md-label">LENDING AMOUNT</div>
+          <div class="md-amount">₹ <span id="md-amount-val">0</span></div>
+          <div class="md-sub" id="md-sub">You are giving money — they owe you back</div>
+        </div>
+
+        <!-- Quick presets -->
+        <div>
+          <div style="color:var(--muted);font-size:9px;font-weight:700;letter-spacing:.05em;margin-bottom:5px">QUICK SELECT  <span style="color:var(--surface3);font-size:9px">or type below</span></div>
+          <div id="money-presets">
+            <div class="mpreset" onclick="setPreset(10)">₹10</div>
+            <div class="mpreset" onclick="setPreset(20)">₹20</div>
+            <div class="mpreset" onclick="setPreset(50)">₹50</div>
+            <div class="mpreset" onclick="setPreset(100)">₹100</div>
+            <div class="mpreset" onclick="setPreset(200)">₹200</div>
+            <div class="mpreset" onclick="setPreset(500)">₹500</div>
+            <div class="mpreset" onclick="setPreset(1000)">₹1000</div>
+            <div class="mpreset" onclick="setPreset(2000)">₹2000</div>
+            <div class="mpreset" onclick="addPreset(10)">+₹10</div>
+            <div class="mpreset" onclick="addPreset(50)">+₹50</div>
+            <div class="mpreset" onclick="addPreset(100)">+₹100</div>
+            <div class="mpreset" onclick="addPreset(500)">+₹500</div>
+          </div>
+        </div>
+
+        <!-- Direct amount input -->
+        <div class="field-group">
+          <label>TYPE AMOUNT</label>
+          <input id="md-amount-input" class="field-inp" type="number" min="1" step="1"
+                 placeholder="e.g. 100, 250, 500..."
+                 style="font-size:18px;font-weight:700;text-align:center;color:var(--udhaar);background:var(--udhaar-bg);border-color:var(--udhaar)"
+                 oninput="onAmountInput(this.value)" onblur="snapAmount()">
+        </div>
+
+        <!-- Customer info -->
+        <div class="field-group">
+          <label>Customer Phone *</label>
+          <input id="md-phone" class="field-inp" type="tel" placeholder="10-digit mobile number"
+                 oninput="onMoneyPhoneInput(this.value)" maxlength="15">
+        </div>
+        <div class="field-group">
+          <label>Customer Name (optional)</label>
+          <input id="md-name" class="field-inp" type="text" placeholder="Name for reference">
+        </div>
+
+        <!-- Balance strip -->
+        <div id="md-balance-strip" style="background:var(--udhaar-bg);border:1px solid var(--udhaar);border-radius:7px;padding:10px 12px;display:none;flex-direction:column;gap:4px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px">
+            <span style="color:var(--udhaar)">Current balance:</span>
+            <span style="font-weight:700;color:#fff" id="md-existing-bal">₹ 0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px">
+            <span style="color:var(--udhaar)">After this:</span>
+            <span style="font-weight:700;color:#fff" id="md-new-bal">₹ 0</span>
+          </div>
+          <div id="md-risk-display" style="font-size:11px;padding-top:4px;display:none;"></div>
+          <div id="md-risk-warn" style="font-size:10px;color:var(--red);font-weight:700;display:none;background:rgba(248,81,73,.08);padding:4px 6px;border-radius:3px;margin-top:3px;"></div>
+        </div>
+
+        <div class="field-group">
+          <label>Note (optional)</label>
+          <input id="md-note" class="field-inp" type="text" placeholder="Reason / description">
+        </div>
+
+        <div id="udhaar-actions">
+          <button id="udhaar-cancel" onclick="closeUdhaarDialog()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:13px;font-weight:600">Cancel</button>
+          <button id="md-confirm" onclick="confirmMoneyUdhaar()" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--udhaar);color:#000;font-size:13px;font-weight:700;cursor:pointer">💸 Confirm</button>
+        </div>
+      </div>
+
+    </div><!-- /udhaar-body -->
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     UDHAAR LEDGER MODAL
+═══════════════════════════════════════════ -->
+<div id="ledger-overlay" onclick="closeLedger(event)">
+  <div id="ledger-modal">
+    <div id="ledger-modal-header">
+      <span>💳</span>
+      <h2>Udhaar Ledger</h2>
+      <button id="ledger-close" onclick="closeLedger()">✕</button>
+    </div>
+    <div id="ledger-toolbar">
+      <input id="ledger-phone-inp" type="tel" placeholder="Search by phone number..." maxlength="15"
+             onkeydown="if(event.key==='Enter') lookupCustomer()">
+      <button id="ledger-lookup-btn" onclick="lookupCustomer()">Lookup</button>
+      <button id="ledger-pay-btn" onclick="openPayCollect()" style="display:none">Collect Payment</button>
+      <button id="ledger-all-btn" onclick="loadAllDebtors()">All Debtors</button>
+    </div>
+    <div id="ledger-body">
+      <div id="ledger-bal-strip">
+        <div class="bal-grid">
+          <div class="bal-cell"><div class="blabel">Given</div><div class="bval red" id="lb-debit">₹0</div></div>
+          <div class="bal-cell"><div class="blabel">Recovered</div><div class="bval green" id="lb-credit">₹0</div></div>
+          <div class="bal-cell"><div class="blabel">Outstanding</div><div class="bval out" id="lb-bal">₹0</div></div>
+        </div>
+      </div>
+      <div id="ledger-entries"></div>
+      <div id="ledger-debtors"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     COLLECT PAYMENT DIALOG
+═══════════════════════════════════════════ -->
+<div id="pay-collect-overlay" onclick="closePayCollect(event)">
+  <div id="pay-collect-modal">
+    <h3>💚 Collect Udhaar Payment</h3>
+    <div class="field-group">
+      <label>Phone</label>
+      <input id="pc-phone" class="field-inp" type="tel" readonly>
+    </div>
+    <div class="field-group">
+      <label>Amount to Collect (₹)</label>
+      <input id="pc-amount" class="field-inp" type="number" min="1" placeholder="Enter amount received">
+    </div>
+    <div class="field-group">
+      <label>Note (optional)</label>
+      <input id="pc-note" class="field-inp" type="text" placeholder="Payment received">
+    </div>
+    <div id="pay-collect-actions">
+      <button id="pay-collect-cancel" onclick="closePayCollect()">Cancel</button>
+      <button id="pay-collect-submit" onclick="submitPayCollect()">✓ Record Payment</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+let allServices   = [];
+let currentCat    = 'All';
+let searchQuery   = '';
+let cart          = [];   // [{svc, qty, override}]
+let paymentMode   = 'Cash';
+let currentLedgerPhone = null;
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadServices();
+  loadSummary();
+  loadRecentTx();
+  loadUdhaarSummary();
+  setInterval(loadSummary, 15000);
+  setInterval(loadRecentTx, 15000);
+  setInterval(loadUdhaarSummary, 30000);
+  setInterval(updateClock, 1000);
+  updateClock();
+});
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) + '  ' +
+    now.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ══════════════════════════════════════════════════
+//  SERVICES
+// ══════════════════════════════════════════════════
+async function loadServices() {
+  try {
+    const r = await fetch('/get-services');
+    const d = await r.json();
+    allServices = (d.services || []).filter(s => s.name !== 'Other');
+    document.getElementById('svc-count').textContent = `● ${allServices.length} services loaded`;
+
+    // build category pills
+    const cats = ['All', ...(d.categories || [])];
+    const catsEl = document.getElementById('cats');
+    catsEl.innerHTML = cats.map(c =>
+      `<div class="cat-pill${c===currentCat?' active':''}" onclick="setCategory('${c}')">${c}</div>`
+    ).join('');
+
+    // category bar chart
+    const byCat = {};
+    allServices.forEach(s => { byCat[s.category] = (byCat[s.category]||0)+1; });
+    const maxCnt = Math.max(...Object.values(byCat), 1);
+    document.getElementById('cat-bars').innerHTML = Object.entries(byCat)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([cat,cnt]) => `
+        <div class="cat-bar-row">
+          <span class="cat-bar-name">${cat}</span>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${cnt/maxCnt*100}%"></div></div>
+          <span class="cat-bar-val">${cnt}</span>
+        </div>`).join('');
+
+    renderGrid();
+  } catch(e) { showToast('Failed to load services', 'err'); }
+}
+
+function renderGrid() {
+  let svcs = allServices;
+  if (currentCat !== 'All') svcs = svcs.filter(s => s.category === currentCat);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    svcs = svcs.filter(s => s.name.toLowerCase().includes(q) || (s.category||'').toLowerCase().includes(q));
+  }
+  document.getElementById('shown-count').textContent = svcs.length;
+  document.getElementById('services-grid').innerHTML = svcs.map(s => `
+    <div class="svc-card" onclick='addToCart(${JSON.stringify(s)})'>
+      <div class="svc-name">${s.name}</div>
+      <div class="svc-price">₹${fmtN(s.price)}</div>
+      <div class="svc-cat">${s.category}</div>
+    </div>`).join('') || '<div style="color:var(--muted);padding:20px;grid-column:1/-1">No services found</div>';
+}
+
+function setCategory(cat) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.toggle('active', p.textContent === cat));
+  renderGrid();
+}
+
+function onSearch(val) { searchQuery = val; renderGrid(); }
+
+function onSearchKey(e) {
+  if (e.key === 'Enter') {
+    // Add the first visible service to cart on Enter
+    const grid = document.getElementById('services-grid');
+    const first = grid ? grid.querySelector('.svc-card') : null;
+    if (first) {
+      first.click();
+      // Clear search after adding so next search starts fresh
+      const inp = document.getElementById('search-inp');
+      if (inp) { inp.value = ''; inp.focus(); }
+      searchQuery = '';
+      renderGrid();
+    }
+  }
+}
+
+function reloadServices() {
+  fetch('/reload-services',{method:'POST'}).then(()=>loadServices());
+}
+
+async function exportExcel() {
+  showToast('Exporting...', 'info');
+  const r = await fetch('/export-excel',{method:'POST'});
+  const d = await r.json();
+  showToast(d.ok ? 'Excel exported ✓' : 'Export failed', d.ok ? 'ok' : 'err');
+}
+
+// ══════════════════════════════════════════════════
+//  CART
+// ══════════════════════════════════════════════════
+function addToCart(svc) {
+  const idx = cart.findIndex(c => c.svc.name === svc.name);
+  if (idx >= 0) { cart[idx].qty++; }
+  else { cart.push({svc, qty:1, override:null}); }
+  renderCart();
+}
+
+function changeQty(name, delta) {
+  const idx = cart.findIndex(c => c.svc.name === name);
+  if (idx < 0) return;
+  cart[idx].qty = Math.max(0, cart[idx].qty + delta);
+  if (cart[idx].qty === 0) cart.splice(idx, 1);
+  renderCart();
+}
+
+function setQtyDirect(name, val) {
+  const q = Math.max(0, parseInt(val) || 0);
+  const idx = cart.findIndex(c => c.svc.name === name);
+  if (idx < 0) return;
+  if (q === 0) { cart.splice(idx, 1); }
+  else { cart[idx].qty = q; }
+  renderCart();
+}
+
+function removeFromCart(name) {
+  cart = cart.filter(c => c.svc.name !== name);
+  renderCart();
+}
+
+function clearCart() { cart = []; renderCart(); }
+
+function setOverride(name, val) {
+  const idx = cart.findIndex(c => c.svc.name === name);
+  if (idx >= 0) { cart[idx].override = val ? parseFloat(val) : null; }
+  renderCart(true);
+}
+
+function renderCart(noFocus) {
+  const el = document.getElementById('cart-items');
+  if (!cart.length) {
+    el.innerHTML = '<div id="cart-empty">Cart is empty</div>';
+    document.getElementById('cart-count').textContent = '0';
+    document.getElementById('cart-items-count').textContent = '0 line(s), 0 unit(s)';
+    document.getElementById('cart-total-val').textContent = '₹ 0';
+    document.getElementById('checkout-btn').disabled = true;
+    return;
+  }
+  document.getElementById('checkout-btn').disabled = false;
+  const totalUnits = cart.reduce((a,c)=>a+c.qty, 0);
+  const totalRev   = cart.reduce((a,c)=>a + c.qty*(c.override ?? c.svc.price), 0);
+  document.getElementById('cart-count').textContent = totalUnits;
+  document.getElementById('cart-items-count').textContent = `${cart.length} line(s), ${totalUnits} unit(s)`;
+  document.getElementById('cart-total-val').textContent = `₹ ${fmtN(totalRev)}`;
+
+  el.innerHTML = cart.map(({svc,qty,override}) => {
+    const fp = override ?? svc.price;
+    const rev = qty * fp;
+    const encodedName = encodeURIComponent(svc.name);
+    return `
+    <div class="cart-item">
+      <div class="cart-item-top">
+        <span class="cart-item-name">${svc.name}</span>
+        <span class="cart-item-rev">₹${fmtN(rev)}</span>
+      </div>
+      <div class="cart-item-sub">
+        <small>₹${fmtN(fp)} each</small>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty('${svc.name}',-1)">−</button>
+          <input class="qty-input" type="number" min="1" max="9999"
+                 value="${qty}"
+                 onchange="setQtyDirect('${svc.name}', this.value)"
+                 onclick="this.select()"
+                 title="Type quantity or use +/− buttons">
+          <button class="qty-btn" onclick="changeQty('${svc.name}',1)">+</button>
+        </div>
+        <span class="remove-btn" onclick="removeFromCart('${svc.name}')">✕</span>
+      </div>
+      <div class="override-row">
+        <label>Override ₹</label>
+        <input class="override-inp" type="number" placeholder="${svc.price}"
+               value="${override ?? ''}"
+               onchange="setOverride('${svc.name}', this.value)"
+               onclick="this.select()">
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setPayment(mode) {
+  paymentMode = mode;
+  document.querySelectorAll('.pay-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.pay === mode);
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  CHECKOUT
+// ══════════════════════════════════════════════════
+function checkout() {
+  if (!cart.length) return;
+  if (paymentMode === 'Udhaar') { openUdhaarDialog(); return; }
+  submitCheckout(null, null);
+}
+
+async function submitCheckout(customerPhone, note) {
+  const items = cart.map(({svc,qty,override}) => ({
+    service:        svc.name,
+    quantity:       qty,
+    override_price: override ?? null,
+  }));
+
+  const body = { items, payment: paymentMode };
+  if (customerPhone) body.customer_phone = customerPhone;
+  if (note) body.notes = note;
+
+  try {
+    const r = await fetch('/add-transaction', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      showToast(paymentMode === 'Udhaar'
+        ? `🤝 Udhaar recorded — ₹${fmtN(cart.reduce((a,c)=>a+c.qty*(c.override??c.svc.price),0))} outstanding`
+        : `✓ ${d.message || 'Transaction saved'}`, 'ok');
+      clearCart();
+      loadSummary();
+      loadRecentTx();
+      if (paymentMode === 'Udhaar') {
+        loadUdhaarSummary();
+        const cfp = document.getElementById('cashflow-panel');
+        if (cfp && cfp.style.display !== 'none') loadCashflow();
+      }
+      setPayment('Cash');
+    } else {
+      showToast(d.message || 'Checkout failed', 'err');
+    }
+  } catch(e) { showToast('Network error', 'err'); }
+}
+
+// ══════════════════════════════════════════════════
+//  UDHAAR DIALOG — two modes
+// ══════════════════════════════════════════════════
+let udhaarTab   = 'item';
+let moneyAmount = 0;
+let moneyType   = 'lend';
+let npBuffer    = '';
+
+function openUdhaarDialog() {
+  if (!cart.length) return;
+  switchUdhaarTab('item');
+  const total = cart.reduce((a,c)=>a+c.qty*(c.override??c.svc.price),0);
+  const units  = cart.reduce((a,c)=>a+c.qty,0);
+  document.getElementById('ud-items').textContent  = `${cart.length} service(s), ${units} unit(s)`;
+  document.getElementById('ud-amount').textContent = `₹ ${fmtN(total)}`;
+  document.getElementById('ud-phone').value = '';
+  document.getElementById('ud-name').value  = '';
+  document.getElementById('ud-note').value  = '';
+  document.getElementById('udhaar-balance-strip').classList.remove('show');
+  document.getElementById('udhaar-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('ud-phone').focus(), 120);
+}
+
+function openMoneyUdhaar() {
+  switchUdhaarTab('money');
+  resetMoneyPad();
+  document.getElementById('udhaar-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('md-phone').focus(), 120);
+}
+
+function closeUdhaarDialog(e) {
+  if (e && e.target !== document.getElementById('udhaar-overlay')) return;
+  document.getElementById('udhaar-overlay').classList.remove('open');
+}
+
+function switchUdhaarTab(tab) {
+  udhaarTab = tab;
+  document.getElementById('tab-item').classList.toggle('active', tab === 'item');
+  document.getElementById('tab-money').classList.toggle('active', tab === 'money');
+  document.getElementById('panel-item').classList.toggle('active', tab === 'item');
+  document.getElementById('panel-money').classList.toggle('active', tab === 'money');
+  document.getElementById('udhaar-title').textContent =
+    tab === 'item' ? 'Item Udhaar (Credit Sale)' : 'Money Lend / Udhaar';
+  if (tab === 'money') { resetMoneyPad(); setMoneyType(moneyType); }
+}
+
+// ── Item mode ──────────────────────────────────────
+let _balLookupTimer = null;
+async function onUdhaarPhoneInput(val) {
+  const strip = document.getElementById('udhaar-balance-strip');
+  if (val.length < 10) { strip.classList.remove('show'); return; }
+  clearTimeout(_balLookupTimer);
+  _balLookupTimer = setTimeout(async () => {
+    try {
+      const [balR, riskR] = await Promise.all([
+        fetch(`/udhaar/balance/${val}`),
+        fetch(`/customer/risk/${val}`),
+      ]);
+      const balD  = await balR.json();
+      const riskD = riskR.ok ? await riskR.json() : null;
+
+      if (balD.balance !== undefined) {
+        const total = cart.reduce((a,c)=>a+c.qty*(c.override??c.svc.price),0);
+        document.getElementById('ud-existing-bal').textContent = `₹ ${fmtN(balD.balance)}`;
+        document.getElementById('ud-new-bal').textContent      = `₹ ${fmtN(balD.balance + total)}`;
+
+        // risk + credit limit display
+        if (riskD) {
+          const riskEl = document.getElementById('ud-risk-display');
+          if (riskEl) {
+            const lvl = riskD.risk_level || 'low';
+            const lim = riskD.credit_limit > 0 ? `Limit: ₹${fmtN(riskD.credit_limit)}` : 'No limit set';
+            const clr = lvl === 'high' ? '#f85149' : lvl === 'medium' ? '#e3b341' : '#39d353';
+            riskEl.innerHTML = `<span style="color:${clr};font-weight:700">Risk: ${lvl.toUpperCase()}</span>&nbsp;&nbsp;${lim}`;
+            riskEl.style.display = 'block';
+            // warn if high risk
+            const warnEl = document.getElementById('ud-risk-warn');
+            if (warnEl) {
+              warnEl.style.display = lvl === 'high' ? 'block' : 'none';
+              warnEl.textContent   = lvl === 'high' ? '⚠ HIGH RISK — udhaar may be blocked by server' : '';
+            }
+          }
+        }
+        strip.classList.add('show');
+      }
+    } catch(_){}
+  }, 600);
+}
+
+async function confirmUdhaarCheckout() {
+  const phone = document.getElementById('ud-phone').value.trim();
+  const name  = document.getElementById('ud-name').value.trim();
+  const note  = document.getElementById('ud-note').value.trim();
+  if (!phone || phone.length < 10) {
+    showToast('Enter a valid 10-digit phone number', 'err');
+    document.getElementById('ud-phone').focus(); return;
+  }
+  document.getElementById('udhaar-confirm').disabled = true;
+  const fullNote = [name ? `Name: ${name}` : '', note].filter(Boolean).join(' · ');
+
+  // Pre-flight risk check before closing dialog
+  try {
+    const riskR = await fetch(`/customer/risk/${phone}`);
+    if (riskR.ok) {
+      const riskD = await riskR.json();
+      if (riskD.risk_level === 'high') {
+        showToast('⚠ HIGH RISK — udhaar blocked. Clear outstanding balance first.', 'err');
+        document.getElementById('udhaar-confirm').disabled = false;
+        return;
+      }
+    }
+  } catch(_) {}
+
+  document.getElementById('udhaar-overlay').classList.remove('open');
+  await submitCheckout(phone, fullNote || null);
+  document.getElementById('udhaar-confirm').disabled = false;
+  loadUdhaarSummary();
+  const cfp = document.getElementById('cashflow-panel');
+  if (cfp && cfp.style.display !== 'none') loadCashflow();
+}
+
+// ── Money mode ─────────────────────────────────────
+function setMoneyType(type) {
+  moneyType = type;
+  const isLend = type === 'lend';
+  document.getElementById('mtype-lend').className   = `mtype-btn ${isLend ? 'active-lend' : ''}`;
+  document.getElementById('mtype-udhaar').className = `mtype-btn ${!isLend ? 'active-udhaar' : ''}`;
+  document.getElementById('md-label').textContent   = isLend ? 'LENDING AMOUNT' : 'UDHAAR AMOUNT';
+  document.getElementById('md-sub').textContent     = isLend
+    ? 'You are giving money — they owe you back'
+    : 'Customer owes this amount (no cart)';
+  document.getElementById('md-confirm').textContent = isLend ? '💸 Record Loan' : '🤝 Record Udhaar';
+}
+
+function resetMoneyPad() {
+  moneyAmount = 0;
+  const inp = document.getElementById('md-amount-input');
+  if (inp) inp.value = '';
+  document.getElementById('md-amount-val').textContent = '0';
+  document.getElementById('md-balance-strip').style.display = 'none';
+  document.querySelectorAll('.mpreset').forEach(p => p.classList.remove('selected'));
+}
+
+function updateMoneyDisplay() {
+  document.getElementById('md-amount-val').textContent = fmtN(moneyAmount);
+  // sync input field
+  const inp = document.getElementById('md-amount-input');
+  if (inp && parseInt(inp.value) !== moneyAmount) inp.value = moneyAmount || '';
+  const phone = (document.getElementById('md-phone')||{}).value||'';
+  if (phone.length >= 10) onMoneyPhoneInput(phone);
+}
+
+function onAmountInput(val) {
+  const raw = parseInt(val) || 0;
+  moneyAmount = Math.max(0, raw);  // accept exact typed value, no rounding
+  document.getElementById('md-amount-val').textContent = fmtN(moneyAmount);
+  document.querySelectorAll('.mpreset').forEach(p => p.classList.remove('selected'));
+  const phone = (document.getElementById('md-phone')||{}).value||'';
+  if (phone.length >= 10) onMoneyPhoneInput(phone);
+}
+
+function snapAmount() {
+  // on blur: just accept whatever positive integer was typed (no snap)
+  const inp = document.getElementById('md-amount-input');
+  if (!inp) return;
+  const raw = parseInt(inp.value) || 0;
+  moneyAmount = Math.max(0, raw);
+  inp.value = moneyAmount || '';
+  updateMoneyDisplay();
+}
+
+function setPreset(v) {
+  moneyAmount = v;
+  document.querySelectorAll('.mpreset').forEach(p => {
+    p.classList.toggle('selected', p.textContent === `₹${v}`);
+  });
+  updateMoneyDisplay();
+}
+
+function addPreset(v) {
+  moneyAmount = Math.round((moneyAmount + v) / 10) * 10;
+  document.querySelectorAll('.mpreset').forEach(p => p.classList.remove('selected'));
+  updateMoneyDisplay();
+}
+
+// legacy numpad stubs (harmless if called)
+function npDigit(d) {}
+function npDel() {}
+
+let _mdBalTimer = null;
+async function onMoneyPhoneInput(val) {
+  const strip = document.getElementById('md-balance-strip');
+  if (val.length < 10) {
+    strip.style.display = 'none';
+    ['md-risk-display','md-risk-warn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    return;
+  }
+  clearTimeout(_mdBalTimer);
+  _mdBalTimer = setTimeout(async () => {
+    try {
+      const [balR, riskR] = await Promise.all([
+        fetch(`/udhaar/balance/${val}`),
+        fetch(`/customer/risk/${val}`),
+      ]);
+      const d    = await balR.json();
+      const riskD = riskR.ok ? await riskR.json() : null;
+      if (d.balance !== undefined) {
+        document.getElementById('md-existing-bal').textContent = `₹ ${fmtN(d.balance)}`;
+        document.getElementById('md-new-bal').textContent      = `₹ ${fmtN(d.balance + moneyAmount)}`;
+        strip.style.display = 'flex';
+
+        if (riskD) {
+          const riskEl = document.getElementById('md-risk-display');
+          const warnEl = document.getElementById('md-risk-warn');
+          const lvl    = riskD.risk_level || 'low';
+          const lim    = riskD.credit_limit > 0 ? `Limit: ₹${fmtN(riskD.credit_limit)}` : 'No limit set';
+          const clr    = lvl === 'high' ? '#f85149' : lvl === 'medium' ? '#e3b341' : '#39d353';
+          if (riskEl) {
+            riskEl.innerHTML    = `<span style="color:${clr};font-weight:700">Risk: ${lvl.toUpperCase()}</span>&nbsp;&nbsp;${lim}`;
+            riskEl.style.display = 'block';
+          }
+          if (warnEl) {
+            warnEl.style.display = lvl === 'high' ? 'block' : 'none';
+            warnEl.textContent   = lvl === 'high' ? '⚠ HIGH RISK — transaction may be blocked' : '';
+          }
+        }
+      }
+    } catch(_){}
+  }, 600);
+}
+
+async function confirmMoneyUdhaar() {
+  const phone = document.getElementById('md-phone').value.trim();
+  const name  = document.getElementById('md-name').value.trim();
+  const note  = document.getElementById('md-note').value.trim();
+  if (!phone || phone.length < 10) {
+    showToast('Enter a valid 10-digit phone number', 'err');
+    document.getElementById('md-phone').focus(); return;
+  }
+  if (moneyAmount <= 0) {
+    showToast('Enter an amount greater than ₹0', 'err'); return;
+  }
+
+  const fullNote = [
+    moneyType === 'lend' ? 'Loan given' : 'Udhaar (cash)',
+    name ? `Name: ${name}` : '',
+    note,
+  ].filter(Boolean).join(' · ');
+
+  document.getElementById('md-confirm').disabled = true;
+  document.getElementById('udhaar-overlay').classList.remove('open');
+  try {
+    const r = await fetch('/udhaar/add', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ phone, amount: moneyAmount, note: fullNote }),
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      showToast(
+        moneyType === 'lend'
+          ? `💸 Loan ₹${fmtN(moneyAmount)} recorded for ${phone}`
+          : `🤝 Udhaar ₹${fmtN(moneyAmount)} recorded for ${phone}`,
+        'ok'
+      );
+      loadUdhaarSummary();
+      // refresh cashflow panel if open
+      const cfp = document.getElementById('cashflow-panel');
+      if (cfp && cfp.style.display !== 'none') loadCashflow();
+    } else {
+      const msg = d.error || 'Failed to record';
+      showToast(msg, 'err');
+      document.getElementById('udhaar-overlay').classList.add('open');
+    }
+  } catch(e) { showToast('Network error', 'err'); }
+  document.getElementById('md-confirm').disabled = false;
+  resetMoneyPad();
+}
+
+// ══════════════════════════════════════════════════
+//  UDHAAR LEDGER MODAL
+// ══════════════════════════════════════════════════
+function openLedger() {
+  document.getElementById('ledger-overlay').classList.add('open');
+  document.getElementById('ledger-bal-strip').classList.remove('show');
+  document.getElementById('ledger-entries').innerHTML = '';
+  document.getElementById('ledger-pay-btn').style.display = 'none';
+  currentLedgerPhone = null;
+  loadAllDebtors();
+}
+
+function closeLedger(e) {
+  if (e && e.target !== document.getElementById('ledger-overlay')) return;
+  document.getElementById('ledger-overlay').classList.remove('open');
+}
+
+async function lookupCustomer() {
+  const phone = document.getElementById('ledger-phone-inp').value.trim();
+  if (!phone || phone.length < 10) { showToast('Enter 10-digit phone', 'err'); return; }
+  currentLedgerPhone = phone;
+
+  try {
+    const r = await fetch(`/udhaar/history/${phone}?limit=50`);
+    const d = await r.json();
+    const bal = d.balance || {};
+
+    // show balance strip
+    document.getElementById('lb-debit').textContent  = `₹${fmtN(bal.total_debit||0)}`;
+    document.getElementById('lb-credit').textContent = `₹${fmtN(bal.total_credit||0)}`;
+    document.getElementById('lb-bal').textContent    = `₹${fmtN(bal.balance||0)}`;
+    document.getElementById('ledger-bal-strip').classList.add('show');
+    document.getElementById('ledger-debtors').innerHTML = '';
+
+    // show pay button if balance > 0
+    document.getElementById('ledger-pay-btn').style.display = (bal.balance > 0) ? 'block' : 'none';
+
+    // render entries
+    const history = d.history || [];
+    document.getElementById('ledger-entries').innerHTML = history.length
+      ? history.map(e => `
+          <div class="ledger-row">
+            <span class="lr-type ${e.type}">${e.type === 'debit' ? '↑ DEBIT' : '↓ PAID'}</span>
+            <span class="lr-note">${e.note || '—'}</span>
+            <span class="lr-amount ${e.type}">₹${fmtN(e.amount)}</span>
+            <span class="lr-ts">${fmtTs(e.timestamp)}</span>
+          </div>`).join('')
+      : '<div style="color:var(--muted);text-align:center;padding:20px">No entries found</div>';
+  } catch(e) { showToast('Lookup failed', 'err'); }
+}
+
+async function loadAllDebtors() {
+  document.getElementById('ledger-bal-strip').classList.remove('show');
+  document.getElementById('ledger-entries').innerHTML = '';
+  document.getElementById('ledger-pay-btn').style.display = 'none';
+  currentLedgerPhone = null;
+  document.getElementById('ledger-phone-inp').value = '';
+
+  try {
+    const r = await fetch('/udhaar/debtors?limit=50');
+    const d = await r.json();
+    const debtors = d.debtors || [];
+    document.getElementById('ledger-debtors').innerHTML = debtors.length
+      ? `<div style="color:var(--muted);font-size:11px;margin-bottom:8px">${debtors.length} customers with outstanding balance</div>`
+        + debtors.map(db => `
+          <div class="debtor-row" onclick="loadDebtor('${db.phone}')">
+            <span class="debtor-phone">📱 ${db.phone}</span>
+            <span class="debtor-balance">₹${fmtN(db.balance)}</span>
+            <span class="debtor-risk ${db.risk}">${db.risk.toUpperCase()}</span>
+          </div>`).join('')
+      : '<div style="color:var(--muted);text-align:center;padding:30px">No outstanding udhaar 🎉</div>';
+  } catch(e) { showToast('Failed to load debtors', 'err'); }
+}
+
+function loadDebtor(phone) {
+  document.getElementById('ledger-phone-inp').value = phone;
+  lookupCustomer();
+}
+
+// ══════════════════════════════════════════════════
+//  COLLECT PAYMENT
+// ══════════════════════════════════════════════════
+function openPayCollect() {
+  if (!currentLedgerPhone) return;
+  document.getElementById('pc-phone').value  = currentLedgerPhone;
+  document.getElementById('pc-amount').value = '';
+  document.getElementById('pc-note').value   = '';
+  document.getElementById('pay-collect-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('pc-amount').focus(), 100);
+}
+
+function closePayCollect(e) {
+  if (e && e.target !== document.getElementById('pay-collect-overlay')) return;
+  document.getElementById('pay-collect-overlay').classList.remove('open');
+}
+
+async function submitPayCollect() {
+  const phone  = document.getElementById('pc-phone').value.trim();
+  const amount = parseFloat(document.getElementById('pc-amount').value);
+  const note   = document.getElementById('pc-note').value.trim() || 'Payment received';
+
+  if (!amount || amount <= 0) { showToast('Enter a valid amount', 'err'); return; }
+
+  try {
+    const r = await fetch('/udhaar/pay', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({phone, amount, note}),
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      showToast(`✓ ₹${fmtN(amount)} collected from ${phone}`, 'ok');
+      closePayCollect();
+      lookupCustomer();   // refresh history
+      loadUdhaarSummary();
+      const cfp = document.getElementById('cashflow-panel');
+      if (cfp && cfp.style.display !== 'none') loadCashflow();
+    } else {
+      showToast(d.error || 'Failed to record payment', 'err');
+    }
+  } catch(e) { showToast('Network error', 'err'); }
+}
+
+// ══════════════════════════════════════════════════
+//  SUMMARY & SIDEBAR
+// ══════════════════════════════════════════════════
+async function loadSummary() {
+  try {
+    const r = await fetch('/summary');
+    const d = await r.json();
+    document.getElementById('s-rev').textContent    = `₹ ${fmtN(d.today_revenue||0)}`;
+    document.getElementById('s-profit').textContent = `₹ ${fmtN(d.today_profit||0)}`;
+    document.getElementById('s-count').textContent  = d.today_count || 0;
+    const avg = d.today_count ? (d.today_revenue/d.today_count) : 0;
+    document.getElementById('s-avg').textContent    = `₹ ${fmtN(avg)}`;
+  } catch(_){}
+}
+
+async function loadRecentTx() {
+  try {
+    const r = await fetch('/recent-transactions?limit=8');
+    const txs = await r.json();
+    document.getElementById('recent-txs').innerHTML = txs.map(tx => `
+      <div class="tx-item">
+        <div>
+          <div class="tx-svc">${tx.service_name} <span class="pay-chip ${tx.payment_mode==='Udhaar'?'udhaar':''}">${tx.payment_mode}</span></div>
+          <div class="tx-meta">${fmtTs(tx.timestamp)} · ×${tx.qty}</div>
+        </div>
+        <span class="tx-rev">₹${fmtN(tx.revenue)}</span>
+      </div>`).join('') || '<div style="color:var(--muted);font-size:11px">No transactions yet</div>';
+  } catch(_){}
+}
+
+async function loadUdhaarSummary() {
+  try {
+    const r = await fetch('/udhaar/summary');
+    const d = await r.json();
+    document.getElementById('u-outstanding').textContent = `₹ ${fmtN(d.total_outstanding||0)}`;
+    document.getElementById('u-sub').textContent =
+      `${d.total_customers||0} customers · ₹${fmtN(d.today_given||0)} today`;
+  } catch(_){}
+}
+
+// ══════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════
+function fmtN(n) {
+  n = parseFloat(n) || 0;
+  return n % 1 === 0 ? n.toLocaleString('en-IN') : n.toLocaleString('en-IN', {minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function fmtTs(ts) {
+  if (!ts) return '';
+  const d = new Date(ts.replace(' ','T'));
+  return isNaN(d) ? ts : d.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+}
+
+let _toastTimer = null;
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = `show ${type}`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.className = '', 3000);
+}
+
+// Init checkout btn state
+document.getElementById('checkout-btn').disabled = true;
+</script>
+
+  <!-- ═══ CASHFLOW INTELLIGENCE PANEL ═══════════════════════════════════════ -->
+  <div id="cashflow-panel" style="display:none; position:fixed; bottom:16px; right:16px; z-index:9999;
+       background:#0d1117; border:1px solid #30363d; border-radius:10px; padding:16px 20px;
+       min-width:260px; box-shadow:0 8px 32px rgba(0,0,0,0.5); font-family:'Segoe UI',sans-serif;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="color:#8b949e;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;">Cashflow Status</span>
+      <button onclick="document.getElementById('cashflow-panel').style.display='none'"
+              style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:16px;line-height:1;padding:0;">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div style="background:#161b22;border-radius:6px;padding:8px 10px;">
+        <div style="color:#8b949e;font-size:10px;margin-bottom:2px;">Booked Today</div>
+        <div id="cf-booked" style="color:#e6edf3;font-size:15px;font-weight:600;">—</div>
+      </div>
+      <div style="background:#161b22;border-radius:6px;padding:8px 10px;">
+        <div style="color:#8b949e;font-size:10px;margin-bottom:2px;">Collected</div>
+        <div id="cf-collected" style="color:#39d353;font-size:15px;font-weight:600;">—</div>
+      </div>
+      <div style="background:#161b22;border-radius:6px;padding:8px 10px;">
+        <div style="color:#8b949e;font-size:10px;margin-bottom:2px;">Outstanding Credit</div>
+        <div id="cf-outstanding" style="color:#f85149;font-size:15px;font-weight:600;">—</div>
+      </div>
+      <div style="background:#161b22;border-radius:6px;padding:8px 10px;">
+        <div style="color:#8b949e;font-size:10px;margin-bottom:2px;">Real Profit</div>
+        <div id="cf-profit" style="color:#58a6ff;font-size:15px;font-weight:600;">—</div>
+      </div>
+    </div>
+    <div style="border-top:1px solid #30363d;padding-top:8px;margin-top:4px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:#8b949e;font-size:10px;">Collection Rate</span>
+        <span id="cf-rate" style="color:#e6edf3;font-size:11px;font-weight:600;">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+        <span style="color:#8b949e;font-size:10px;">Active Debtors</span>
+        <span id="cf-debtors" style="color:#e6edf3;font-size:11px;">—</span>
+      </div>
+    </div>
+    <div id="cf-overdue-warn" style="display:none;margin-top:8px;padding:6px 10px;
+         background:#3d1f1f;border-radius:4px;color:#f85149;font-size:10px;"></div>
+  </div>
+
+  <script>
+  // ── Cashflow Intelligence ────────────────────────────────────────────────
+  function fmtRs(v) {
+    if (v == null || isNaN(v)) return '—';
+    return '₹' + Number(v).toLocaleString('en-IN', {maximumFractionDigits:0});
+  }
+
+  async function loadCashflow() {
+    try {
+      const r = await fetch('/metrics/cashflow');
+      if (!r.ok) return;
+      const d = await r.json();
+      document.getElementById('cf-booked').textContent     = fmtRs(d.booked_revenue);
+      document.getElementById('cf-collected').textContent  = fmtRs(d.collected_revenue);
+      document.getElementById('cf-outstanding').textContent= fmtRs(d.outstanding_udhaar);
+      document.getElementById('cf-profit').textContent     = fmtRs(d.real_profit);
+      document.getElementById('cf-rate').textContent       = d.collection_rate != null
+        ? (d.collection_rate * 100).toFixed(1) + '%' : '—';
+      document.getElementById('cf-debtors').textContent    = d.active_debtors ?? '—';
+
+      // Show overdue warning if collection rate < 80%
+      const warn = document.getElementById('cf-overdue-warn');
+      if (d.collection_rate < 0.8 && d.outstanding_udhaar > 0) {
+        warn.style.display = 'block';
+        warn.textContent   = '⚠ Collection rate low — check overdue list';
+      } else {
+        warn.style.display = 'none';
+      }
+    } catch(e) { /* non-critical */ }
+  }
+
+  function showCashflow() {
+    const p = document.getElementById('cashflow-panel');
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+    if (p.style.display === 'block') loadCashflow();
+  }
+
+  // Auto-refresh cashflow every 60s if panel is open
+  setInterval(function() {
+    const p = document.getElementById('cashflow-panel');
+    if (p && p.style.display !== 'none') loadCashflow();
+  }, 60000);
+  </script>
+
+
+  <script>
+  // ── Inject Cashflow button into UI ──────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function() {
+    // Try to find a good container — look for udhaar-related buttons or top bar
+    const containers = [
+      document.querySelector('.top-bar-actions'),
+      document.querySelector('.nav-actions'),
+      document.querySelector('#header-actions'),
+      document.querySelector('.action-buttons'),
+      document.querySelector('header'),
+      document.body,
+    ];
+    const target = containers.find(el => el !== null && el !== document.body) || document.body;
+
+    const btn = document.createElement('button');
+    btn.textContent = '📊 Cashflow';
+    btn.title       = 'Real cashflow status — collected vs outstanding';
+    btn.onclick     = showCashflow;
+    btn.style.cssText = [
+      'position:fixed','top:12px','right:16px','z-index:10000',
+      'background:#161b22','border:1px solid #30363d','color:#58a6ff',
+      'border-radius:6px','padding:5px 12px','font-size:12px',
+      'font-family:Segoe UI,sans-serif','cursor:pointer',
+      'font-weight:600','letter-spacing:.02em',
+    ].join(';');
+    document.body.appendChild(btn);
+  });
+  </script>
+
+
+  <script>
+  // ── Udhaar dialog: show risk level + credit limit when phone entered ───
+  (function() {
+    function _attachUdhaarRiskDisplay() {
+      // Look for phone inputs in udhaar-related modals/forms
+      const forms = document.querySelectorAll(
+        '#udhaar-form, #udhaar-modal, [data-form="udhaar"], .udhaar-dialog'
+      );
+      forms.forEach(function(form) {
+        const phoneInput = form.querySelector('input[type="tel"], input[name="phone"], input[placeholder*="phone" i]');
+        if (!phoneInput || phoneInput._riskAttached) return;
+        phoneInput._riskAttached = true;
+
+        let _riskDiv = form.querySelector('#udhaar-risk-info');
+        if (!_riskDiv) {
+          _riskDiv = document.createElement('div');
+          _riskDiv.id = 'udhaar-risk-info';
+          _riskDiv.style.cssText = 'font-size:11px;margin-top:6px;padding:6px 10px;border-radius:4px;display:none;';
+          phoneInput.parentNode.insertBefore(_riskDiv, phoneInput.nextSibling);
+        }
+
+        let _debounce;
+        phoneInput.addEventListener('input', function() {
+          clearTimeout(_debounce);
+          const ph = this.value.replace(/\D/g,'');
+          if (ph.length < 10) { _riskDiv.style.display='none'; return; }
+          _debounce = setTimeout(async function() {
+            try {
+              const r  = await fetch('/customer/risk/' + ph);
+              if (!r.ok) return;
+              const d  = await r.json();
+              const clr = d.risk_level === 'high' ? '#f85149'
+                        : d.risk_level === 'medium' ? '#e3b341' : '#39d353';
+              const bg  = d.risk_level === 'high' ? '#3d1f1f'
+                        : d.risk_level === 'medium' ? '#2d2a1f' : '#1f2d1f';
+              _riskDiv.style.background = bg;
+              _riskDiv.style.color      = clr;
+              _riskDiv.style.display    = 'block';
+              const bal  = (d.balance && d.balance.balance != null) ? '₹' + d.balance.balance.toLocaleString('en-IN') : '—';
+              const lim  = d.credit_limit > 0 ? '₹' + d.credit_limit.toLocaleString('en-IN') : 'No limit';
+              _riskDiv.innerHTML = '<strong>Risk: ' + d.risk_level.toUpperCase() + '</strong>'
+                + ' &nbsp;|&nbsp; Balance: ' + bal
+                + ' &nbsp;|&nbsp; Limit: ' + lim;
+            } catch(e) { _riskDiv.style.display='none'; }
+          }, 600);
+        });
+      });
+    }
+
+    // Run after load and on any dynamic DOM mutations
+    document.addEventListener('DOMContentLoaded', _attachUdhaarRiskDisplay);
+    const _obs = new MutationObserver(_attachUdhaarRiskDisplay);
+    document.addEventListener('DOMContentLoaded', function() {
+      _obs.observe(document.body, { childList: true, subtree: true });
+    });
+  })();
+  </script>
+
+<!-- ══════════════════════════════════════════
+     AGENT CONSOLE OVERLAY
+════════════════════════════════════════ -->
+<div id="agent-overlay" onclick="agentOverlayClick(event)">
+  <div id="agent-modal">
+
+    <div id="agent-header">
+      <span style="font-size:20px">🤖</span>
+      <h2>Agent Console</h2>
+      <span class="badge" id="agent-status-badge">OFFLINE</span>
+      <div style="flex:1"></div>
+      <button onclick="agentClearHistory()" style="background:none;border:1px solid #30363d;color:#8b949e;font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;margin-right:8px">Clear</button>
+      <button id="agent-close" onclick="closeAgentConsole()">✕</button>
+    </div>
+
+    <div id="agent-body">
+      <!-- agent network -->
+      <div id="agent-network">
+        <h4>Agent Network</h4>
+        <div id="an-nodes"></div>
+      </div>
+
+      <!-- chat panel -->
+      <div id="agent-chat">
+        <div id="agent-feed">
+          <div style="color:#8b949e;font-size:12px;text-align:center;margin-top:40px">
+            🤖 Multi-Agent POS Intelligence<br>
+            <span style="font-size:11px;opacity:.6">Type a command — Commander routes it to the right agents</span>
+          </div>
+        </div>
+
+        <div id="agent-input-row">
+          <textarea id="agent-input" rows="1"
+            placeholder="Ask anything: pricing, analytics, stock, health…"
+            onkeydown="agentInputKey(event)"
+            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+          <button id="agent-send" onclick="agentSend()">Send ↑</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  AGENT CONSOLE  — frontend logic
+// ══════════════════════════════════════════════════════
+(function() {
+  let _sse        = null;
+  let _sessionId  = null;
+  let _sending    = false;
+  let _agents     = [];
+
+  // ── open / close ──────────────────────────────────
+  window.openAgentConsole = function() {
+    document.getElementById('agent-overlay').classList.add('open');
+    _loadAgents();
+    document.getElementById('agent-input').focus();
+  };
+
+  window.closeAgentConsole = function() {
+    document.getElementById('agent-overlay').classList.remove('open');
+    _disconnectSSE();
+  };
+
+  window.agentOverlayClick = function(e) {
+    if (e.target === document.getElementById('agent-overlay')) closeAgentConsole();
+  };
+
+  // ── load agent list ───────────────────────────────
+  function _loadAgents() {
+    fetch('/agent/agents').then(r => r.json()).then(d => {
+      _agents = d.agents || [];
+      const badge = document.getElementById('agent-status-badge');
+      badge.textContent = d.available ? 'ONLINE' : 'OFFLINE';
+      badge.style.color = d.available ? '#3fb950' : '#f85149';
+      _renderNodes();
+    }).catch(() => {});
+  }
+
+  function _renderNodes() {
+    const container = document.getElementById('an-nodes');
+    container.innerHTML = '';
+    _agents.forEach(ag => {
+      const el = document.createElement('div');
+      el.className = 'an-node';
+      el.id = 'an-' + ag.name;
+      el.style.setProperty('--node-color', ag.color);
+      el.innerHTML =
+        '<span class="emoji">' + ag.emoji + '</span>' +
+        '<div class="info"><div class="nname">' + ag.name + '</div>' +
+        '<div class="ndesc">' + ag.description + '</div></div>' +
+        '<div class="dot"></div>';
+      container.appendChild(el);
+    });
+  }
+
+  function _pulseNode(name, on) {
+    const el = document.getElementById('an-' + name);
+    if (!el) return;
+    el.classList.toggle('active', on);
+    el.classList.toggle('pulsing', on);
+  }
+
+  // ── send command ──────────────────────────────────
+  window.agentSend = function() {
+    const inp = document.getElementById('agent-input');
+    const text = inp.value.trim();
+    if (!text || _sending) return;
+    inp.value = '';
+    inp.style.height = 'auto';
+    _send(text);
+  };
+
+  window.agentInputKey = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSend(); }
+  };
+
+  function _send(text) {
+    _sending = true;
+    document.getElementById('agent-send').disabled = true;
+    _sessionId = _uuid();
+    _connectSSE(_sessionId);
+
+    fetch('/agent/command', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text, session_id: _sessionId}),
+    }).catch(err => {
+      _appendMsg('error', 'commander', 'Connection error: ' + err.message);
+      _done();
+    });
+  }
+
+  // ── SSE connection ────────────────────────────────
+  function _connectSSE(sid) {
+    _disconnectSSE();
+    _sse = new EventSource('/agent/stream/' + sid);
+    _sse.onmessage = function(e) {
+      try {
+        const msg = JSON.parse(e.data);
+        _handleMsg(msg);
+      } catch(_) {}
+    };
+    _sse.onerror = function() { _done(); };
+  }
+
+  function _disconnectSSE() {
+    if (_sse) { _sse.close(); _sse = null; }
+  }
+
+  function _handleMsg(msg) {
+    _pulseNode(msg.agent, true);
+
+    if (msg.type === 'user') {
+      _appendMsg('user-msg', null, msg.message);
+    } else {
+      _appendMsg(msg.type, msg.agent, msg.message);
+    }
+
+    if (msg.type === 'complete' || msg.type === 'error') {
+      setTimeout(() => _pulseNode(msg.agent, false), 1200);
+      // stop pulsing all nodes after complete
+      if (msg.type === 'complete') {
+        setTimeout(() => {
+          _agents.forEach(a => _pulseNode(a.name, false));
+        }, 1500);
+        _done();
+      }
+    }
+  }
+
+  function _done() {
+    _sending = false;
+    document.getElementById('agent-send').disabled = false;
+    _disconnectSSE();
+  }
+
+  // ── feed rendering ────────────────────────────────
+  function _appendMsg(type, agent, text) {
+    const feed = document.getElementById('agent-feed');
+
+    // remove placeholder
+    const placeholder = feed.querySelector('div[style*="margin-top:40px"]');
+    if (placeholder) placeholder.remove();
+
+    const el = document.createElement('div');
+    el.className = 'af-msg ' + type;
+
+    const agentInfo = agent ? _agents.find(a => a.name === agent) : null;
+    const label = agentInfo
+      ? agentInfo.emoji + ' ' + agentInfo.name.toUpperCase()
+      : (type === 'user-msg' ? '👤 YOU' : '');
+
+    if (label) {
+      el.innerHTML = '<div class="af-meta">' + label + '</div>';
+    }
+
+    // render markdown-ish: **bold**, newlines
+    const body = document.createElement('div');
+    body.innerHTML = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+    el.appendChild(body);
+
+    feed.appendChild(el);
+    feed.scrollTop = feed.scrollHeight;
+  }
+
+  // ── history ───────────────────────────────────────
+  window.agentClearHistory = function() {
+    fetch('/agent/clear', {method:'POST'}).catch(()=>{});
+    const feed = document.getElementById('agent-feed');
+    feed.innerHTML = '<div style="color:#8b949e;font-size:12px;text-align:center;margin-top:40px">History cleared.</div>';
+  };
+
+  // ── util ──────────────────────────────────────────
+  function _uuid() {
+    return 'xxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g, c => {
+      const r = Math.random()*16|0;
+      return (c==='x'?r:(r&0x3|0x8)).toString(16);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
