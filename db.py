@@ -71,6 +71,7 @@ def get_db() -> sqlite3.Connection:
     if conn is None:
         conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=15)
         conn.row_factory = sqlite3.Row
+        conn.isolation_level = None   # autocommit — all transactions are explicit BEGIN/COMMIT
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA foreign_keys=ON")
         conn.execute("PRAGMA synchronous=NORMAL")   # safe + faster than FULL
@@ -202,6 +203,22 @@ def init_db():
             CREATE INDEX IF NOT EXISTS idx_evt_entity ON system_events(entity_type, entity_id);
             CREATE INDEX IF NOT EXISTS idx_evt_ts     ON system_events(timestamp);
             CREATE INDEX IF NOT EXISTS idx_evt_type   ON system_events(event_type);
+
+            -- ── Business Expenses ──────────────────────────────────────────────
+            CREATE TABLE IF NOT EXISTS business_expenses (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                amount       REAL    NOT NULL CHECK(amount > 0),
+                category     TEXT    NOT NULL DEFAULT 'Other',
+                description  TEXT    NOT NULL DEFAULT '',
+                expense_date TEXT    NOT NULL DEFAULT (date('now')),
+                payment_mode TEXT    NOT NULL DEFAULT 'Cash',
+                created_by   TEXT    NOT NULL DEFAULT 'admin',
+                created_at   TEXT    NOT NULL
+                                     DEFAULT (strftime('%Y-%m-%dT%H:%M:%S','now'))
+            );
+            CREATE INDEX IF NOT EXISTS idx_exp_date     ON business_expenses(expense_date);
+            CREATE INDEX IF NOT EXISTS idx_exp_category ON business_expenses(category);
+            CREATE INDEX IF NOT EXISTS idx_exp_created  ON business_expenses(created_at);
         """)
         conn.commit()
 

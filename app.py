@@ -246,7 +246,7 @@ def _get_services_cached_from_db() -> dict:
 BASE_MAX_PRICES: dict = {}
 
 # ── Config ─────────────────────────────────────────────────────────────────────
-AUTO_PRICING            = True   # DB-FIRST: pricing engine executes autonomously
+AUTO_PRICING            = False  # HARDENED: disabled; enable via /auto-pricing endpoint only
 FAILSAFE_THRESHOLD      = 3      # consecutive CRITICAL errors before fail-safe
 BUNDLE_MIN_CONFIDENCE   = 0.02
 BUNDLE_SESSION_WINDOW   = 30     # FIX BUG-7: reduced from 300s → 30s strict window
