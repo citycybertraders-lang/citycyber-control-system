@@ -484,6 +484,111 @@
   #toast.ok { border-color: var(--green); color: var(--green); }
   #toast.err { border-color: var(--red); color: var(--red); }
   #toast.info { border-color: var(--udhaar); color: var(--udhaar); }
+
+  /* ── Agent Console ─────────────────────────────────── */
+  #agent-overlay {
+    display:none; position:fixed; inset:0; z-index:12000;
+    background:rgba(0,0,0,.72); backdrop-filter:blur(6px);
+    align-items:center; justify-content:center;
+  }
+  #agent-overlay.open { display:flex; }
+  #agent-modal {
+    width:min(96vw,1100px); height:min(92vh,760px);
+    background:#0d1117; border:1px solid #30363d;
+    border-radius:14px; display:flex; flex-direction:column; overflow:hidden;
+    box-shadow:0 24px 80px rgba(0,0,0,.7);
+  }
+  #agent-header {
+    display:flex; align-items:center; gap:12px;
+    padding:14px 18px; border-bottom:1px solid #21262d;
+    background:#161b22;
+  }
+  #agent-header h2 { margin:0; font-size:15px; color:#e6edf3; flex:1; }
+  #agent-header .badge {
+    font-size:10px; padding:2px 8px; border-radius:20px;
+    background:#21262d; color:#58a6ff; font-weight:700; letter-spacing:.5px;
+  }
+  #agent-close {
+    background:none; border:none; color:#8b949e; font-size:18px;
+    cursor:pointer; padding:2px 6px; border-radius:4px;
+  }
+  #agent-close:hover { color:#e6edf3; background:#21262d; }
+  #agent-body { display:flex; flex:1; overflow:hidden; }
+  /* left — network panel */
+  #agent-network {
+    width:220px; border-right:1px solid #21262d;
+    background:#0d1117; padding:14px 12px; overflow-y:auto;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  #agent-network h4 {
+    margin:0 0 6px; font-size:10px; letter-spacing:1px;
+    color:#8b949e; text-transform:uppercase;
+  }
+  .an-node {
+    display:flex; align-items:center; gap:9px; padding:8px 10px;
+    border-radius:8px; background:#161b22; border:1px solid #21262d;
+    cursor:default; transition:border-color .15s;
+  }
+  .an-node.active { border-color: var(--node-color, #58a6ff); }
+  .an-node .emoji { font-size:18px; line-height:1; }
+  .an-node .info { flex:1; min-width:0; }
+  .an-node .info .nname {
+    font-size:11px; font-weight:700; color:#e6edf3; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis;
+  }
+  .an-node .info .ndesc { font-size:9px; color:#8b949e; margin-top:1px; }
+  .an-node .dot {
+    width:7px; height:7px; border-radius:50%;
+    background:#30363d; transition:background .3s;
+  }
+  .an-node.pulsing .dot { background: var(--node-color, #58a6ff); animation: dotpulse .8s infinite; }
+  @keyframes dotpulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+  /* right — chat */
+  #agent-chat { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  #agent-feed {
+    flex:1; overflow-y:auto; padding:16px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  #agent-feed::-webkit-scrollbar { width:4px; }
+  #agent-feed::-webkit-scrollbar-track { background:#0d1117; }
+  #agent-feed::-webkit-scrollbar-thumb { background:#30363d; border-radius:2px; }
+  .af-msg {
+    max-width:82%; padding:9px 13px; border-radius:10px;
+    font-size:12px; line-height:1.55; word-break:break-word;
+    animation: msgIn .2s ease;
+  }
+  @keyframes msgIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+  .af-msg.user-msg {
+    align-self:flex-end; background:#1f6feb22;
+    border:1px solid #1f6feb55; color:#79c0ff;
+  }
+  .af-msg.thinking { color:#8b949e; font-style:italic; background:#161b22; border:1px solid #21262d; }
+  .af-msg.working  { color:#d2a8ff; background:#161b22; border:1px solid #30363d; }
+  .af-msg.inter_agent { color:#ffa657; background:#161b22; border:1px solid #30363d; font-size:11px; }
+  .af-msg.response  { color:#e6edf3; background:#161b22; border:1px solid #21262d; }
+  .af-msg.complete  { color:#3fb950; background:#1a2f1c; border:1px solid #3fb95055; }
+  .af-msg.error     { color:#f85149; background:#2a1515; border:1px solid #f8514955; }
+  .af-msg.info      { color:#58a6ff; background:#161b22; border:1px solid #21262d; }
+  .af-msg .af-meta  { font-size:9px; color:#8b949e; margin-bottom:3px; font-weight:600; }
+  #agent-input-row {
+    padding:12px 16px; border-top:1px solid #21262d;
+    background:#161b22; display:flex; gap:8px; align-items:flex-end;
+  }
+  #agent-input {
+    flex:1; background:#0d1117; border:1px solid #30363d; border-radius:8px;
+    color:#e6edf3; font-size:13px; padding:9px 12px; resize:none; outline:none;
+    font-family:inherit; min-height:38px; max-height:120px;
+  }
+  #agent-input:focus { border-color:#58a6ff; }
+  #agent-send {
+    padding:9px 18px; background:#1f6feb; border:none; border-radius:8px;
+    color:#fff; font-size:13px; font-weight:700; cursor:pointer;
+    transition:background .15s; white-space:nowrap;
+  }
+  #agent-send:hover { background:#388bfd; }
+  #agent-send:disabled { background:#21262d; color:#8b949e; cursor:not-allowed; }
+  .hbtn.agent-btn { border-color:#1f6feb; color:#58a6ff; }
+  .hbtn.agent-btn:hover { background:#1f6feb22; }
 </style>
 </head>
 <body>
@@ -497,6 +602,7 @@
   <button class="hbtn" onclick="reloadServices()">↺ Refresh</button>
   <button class="hbtn green" onclick="exportExcel()">↑ Export Excel</button>
   <button class="hbtn" style="border-color:var(--udhaar);color:var(--udhaar)" onclick="openLedger()">💳 Udhaar Ledger</button>
+  <button class="hbtn agent-btn" onclick="openAgentConsole()">🤖 Agent Console</button>
 </div>
 
 <!-- ── LAYOUT ── -->
@@ -1682,6 +1788,235 @@ document.getElementById('checkout-btn').disabled = true;
     });
   })();
   </script>
+
+<!-- ══════════════════════════════════════════
+     AGENT CONSOLE OVERLAY
+════════════════════════════════════════ -->
+<div id="agent-overlay" onclick="agentOverlayClick(event)">
+  <div id="agent-modal">
+
+    <div id="agent-header">
+      <span style="font-size:20px">🤖</span>
+      <h2>Agent Console</h2>
+      <span class="badge" id="agent-status-badge">OFFLINE</span>
+      <div style="flex:1"></div>
+      <button onclick="agentClearHistory()" style="background:none;border:1px solid #30363d;color:#8b949e;font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;margin-right:8px">Clear</button>
+      <button id="agent-close" onclick="closeAgentConsole()">✕</button>
+    </div>
+
+    <div id="agent-body">
+      <!-- agent network -->
+      <div id="agent-network">
+        <h4>Agent Network</h4>
+        <div id="an-nodes"></div>
+      </div>
+
+      <!-- chat panel -->
+      <div id="agent-chat">
+        <div id="agent-feed">
+          <div style="color:#8b949e;font-size:12px;text-align:center;margin-top:40px">
+            🤖 Multi-Agent POS Intelligence<br>
+            <span style="font-size:11px;opacity:.6">Type a command — Commander routes it to the right agents</span>
+          </div>
+        </div>
+
+        <div id="agent-input-row">
+          <textarea id="agent-input" rows="1"
+            placeholder="Ask anything: pricing, analytics, stock, health…"
+            onkeydown="agentInputKey(event)"
+            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+          <button id="agent-send" onclick="agentSend()">Send ↑</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  AGENT CONSOLE  — frontend logic
+// ══════════════════════════════════════════════════════
+(function() {
+  let _sse        = null;
+  let _sessionId  = null;
+  let _sending    = false;
+  let _agents     = [];
+
+  // ── open / close ──────────────────────────────────
+  window.openAgentConsole = function() {
+    document.getElementById('agent-overlay').classList.add('open');
+    _loadAgents();
+    document.getElementById('agent-input').focus();
+  };
+
+  window.closeAgentConsole = function() {
+    document.getElementById('agent-overlay').classList.remove('open');
+    _disconnectSSE();
+  };
+
+  window.agentOverlayClick = function(e) {
+    if (e.target === document.getElementById('agent-overlay')) closeAgentConsole();
+  };
+
+  // ── load agent list ───────────────────────────────
+  function _loadAgents() {
+    fetch('/agent/agents').then(r => r.json()).then(d => {
+      _agents = d.agents || [];
+      const badge = document.getElementById('agent-status-badge');
+      badge.textContent = d.available ? 'ONLINE' : 'OFFLINE';
+      badge.style.color = d.available ? '#3fb950' : '#f85149';
+      _renderNodes();
+    }).catch(() => {});
+  }
+
+  function _renderNodes() {
+    const container = document.getElementById('an-nodes');
+    container.innerHTML = '';
+    _agents.forEach(ag => {
+      const el = document.createElement('div');
+      el.className = 'an-node';
+      el.id = 'an-' + ag.name;
+      el.style.setProperty('--node-color', ag.color);
+      el.innerHTML =
+        '<span class="emoji">' + ag.emoji + '</span>' +
+        '<div class="info"><div class="nname">' + ag.name + '</div>' +
+        '<div class="ndesc">' + ag.description + '</div></div>' +
+        '<div class="dot"></div>';
+      container.appendChild(el);
+    });
+  }
+
+  function _pulseNode(name, on) {
+    const el = document.getElementById('an-' + name);
+    if (!el) return;
+    el.classList.toggle('active', on);
+    el.classList.toggle('pulsing', on);
+  }
+
+  // ── send command ──────────────────────────────────
+  window.agentSend = function() {
+    const inp = document.getElementById('agent-input');
+    const text = inp.value.trim();
+    if (!text || _sending) return;
+    inp.value = '';
+    inp.style.height = 'auto';
+    _send(text);
+  };
+
+  window.agentInputKey = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSend(); }
+  };
+
+  function _send(text) {
+    _sending = true;
+    document.getElementById('agent-send').disabled = true;
+    _sessionId = _uuid();
+    _connectSSE(_sessionId);
+
+    fetch('/agent/command', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text, session_id: _sessionId}),
+    }).catch(err => {
+      _appendMsg('error', 'commander', 'Connection error: ' + err.message);
+      _done();
+    });
+  }
+
+  // ── SSE connection ────────────────────────────────
+  function _connectSSE(sid) {
+    _disconnectSSE();
+    _sse = new EventSource('/agent/stream/' + sid);
+    _sse.onmessage = function(e) {
+      try {
+        const msg = JSON.parse(e.data);
+        _handleMsg(msg);
+      } catch(_) {}
+    };
+    _sse.onerror = function() { _done(); };
+  }
+
+  function _disconnectSSE() {
+    if (_sse) { _sse.close(); _sse = null; }
+  }
+
+  function _handleMsg(msg) {
+    _pulseNode(msg.agent, true);
+
+    if (msg.type === 'user') {
+      _appendMsg('user-msg', null, msg.message);
+    } else {
+      _appendMsg(msg.type, msg.agent, msg.message);
+    }
+
+    if (msg.type === 'complete' || msg.type === 'error') {
+      setTimeout(() => _pulseNode(msg.agent, false), 1200);
+      // stop pulsing all nodes after complete
+      if (msg.type === 'complete') {
+        setTimeout(() => {
+          _agents.forEach(a => _pulseNode(a.name, false));
+        }, 1500);
+        _done();
+      }
+    }
+  }
+
+  function _done() {
+    _sending = false;
+    document.getElementById('agent-send').disabled = false;
+    _disconnectSSE();
+  }
+
+  // ── feed rendering ────────────────────────────────
+  function _appendMsg(type, agent, text) {
+    const feed = document.getElementById('agent-feed');
+
+    // remove placeholder
+    const placeholder = feed.querySelector('div[style*="margin-top:40px"]');
+    if (placeholder) placeholder.remove();
+
+    const el = document.createElement('div');
+    el.className = 'af-msg ' + type;
+
+    const agentInfo = agent ? _agents.find(a => a.name === agent) : null;
+    const label = agentInfo
+      ? agentInfo.emoji + ' ' + agentInfo.name.toUpperCase()
+      : (type === 'user-msg' ? '👤 YOU' : '');
+
+    if (label) {
+      el.innerHTML = '<div class="af-meta">' + label + '</div>';
+    }
+
+    // render markdown-ish: **bold**, newlines
+    const body = document.createElement('div');
+    body.innerHTML = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+    el.appendChild(body);
+
+    feed.appendChild(el);
+    feed.scrollTop = feed.scrollHeight;
+  }
+
+  // ── history ───────────────────────────────────────
+  window.agentClearHistory = function() {
+    fetch('/agent/clear', {method:'POST'}).catch(()=>{});
+    const feed = document.getElementById('agent-feed');
+    feed.innerHTML = '<div style="color:#8b949e;font-size:12px;text-align:center;margin-top:40px">History cleared.</div>';
+  };
+
+  // ── util ──────────────────────────────────────────
+  function _uuid() {
+    return 'xxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g, c => {
+      const r = Math.random()*16|0;
+      return (c==='x'?r:(r&0x3|0x8)).toString(16);
+    });
+  }
+})();
+</script>
 
 </body>
 </html>

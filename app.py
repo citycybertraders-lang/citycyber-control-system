@@ -98,7 +98,7 @@ STRUCTURAL UPGRADES (v4)
 
 import os, time, threading, logging, traceback, json, collections, math
 from datetime import datetime, date, timedelta
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, Response, stream_with_context
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -117,6 +117,31 @@ try:
 except ImportError:
     _ctrl = None
     _CTRL_AVAILABLE = False
+
+# ── Multi-agent system ────────────────────────────────────────────────────────
+try:
+    import sys, pathlib
+    sys.path.insert(0, str(pathlib.Path(__file__).parent / "backend"))
+    from agents import (
+        get_bus, AgentMessage,
+        CommanderAgent,
+        PricingAgent, AnalyticsAgent, InventoryAgent,
+        CustomerAgent, HealthAgent, ReportAgent,
+    )
+    _agent_workers = {
+        "pricing":   PricingAgent(),
+        "analytics": AnalyticsAgent(),
+        "inventory": InventoryAgent(),
+        "customer":  CustomerAgent(),
+        "health":    HealthAgent(),
+        "report":    ReportAgent(),
+    }
+    _commander = CommanderAgent(_agent_workers)
+    _AGENTS_AVAILABLE = True
+except Exception as _agent_err:
+    _AGENTS_AVAILABLE = False
+    _commander = None
+    _agent_workers = {}
 
 # ── Feature flag: set True to read services/demand from DB instead of Excel ───
 # Phase 3: safe switch — keep False until DB has been seeded and verified
@@ -4736,6 +4761,87 @@ def all_customer_risk():
     except Exception as e:
         log.error("all-customer-risk failed: %s", e)
         return jsonify({"error": str(e)}), 500
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MULTI-AGENT ROUTES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/agent/command", methods=["POST"])
+def agent_command():
+    if not _AGENTS_AVAILABLE:
+        return jsonify({"error": "Agent system unavailable"}), 503
+    body = request.get_json(silent=True) or {}
+    text = (body.get("text") or "").strip()
+    if not text:
+        return jsonify({"error": "text required"}), 400
+    import uuid
+    sid = body.get("session_id") or str(uuid.uuid4())
+    _commander.handle_command(text, session_id=sid)
+    return jsonify({"ok": True, "session_id": sid})
+
+
+@app.route("/agent/stream/<session_id>", methods=["GET"])
+def agent_stream(session_id: str):
+    if not _AGENTS_AVAILABLE:
+        return jsonify({"error": "Agent system unavailable"}), 503
+    bus = get_bus()
+    q   = bus.subscribe(session_id)
+
+    @stream_with_context
+    def _generate():
+        import queue as _queue
+        yield ": connected\n\n"
+        while True:
+            try:
+                msg = q.get(timeout=25)
+                yield msg.to_sse()
+                if msg.type in ("complete", "error"):
+                    break
+            except _queue.Empty:
+                yield ": keepalive\n\n"
+
+    resp = Response(_generate(), mimetype="text/event-stream")
+    resp.headers["Cache-Control"]               = "no-cache"
+    resp.headers["X-Accel-Buffering"]           = "no"
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    return resp
+
+
+@app.route("/agent/agents", methods=["GET"])
+def agent_list():
+    agents = []
+    for name, w in _agent_workers.items():
+        agents.append({
+            "name":        w.name,
+            "description": w.description,
+            "emoji":       w.emoji,
+            "color":       w.color,
+        })
+    # add commander
+    if _AGENTS_AVAILABLE and _commander:
+        agents.insert(0, {
+            "name":        _commander.name,
+            "description": _commander.description,
+            "emoji":       _commander.emoji,
+            "color":       _commander.color,
+        })
+    return jsonify({"agents": agents, "available": _AGENTS_AVAILABLE})
+
+
+@app.route("/agent/history", methods=["GET"])
+def agent_history():
+    if not _AGENTS_AVAILABLE:
+        return jsonify({"history": []}), 200
+    limit = min(int(request.args.get("limit", 100)), 600)
+    return jsonify({"history": get_bus().history(limit)})
+
+
+@app.route("/agent/clear", methods=["POST"])
+def agent_clear():
+    if _AGENTS_AVAILABLE:
+        get_bus().clear()
+    return jsonify({"ok": True})
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
